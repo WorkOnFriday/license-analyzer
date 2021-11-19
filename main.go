@@ -1,57 +1,21 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"net/http"
+	"license-analyzer/conf"
+	"license-analyzer/logger"
+	"license-analyzer/mysql"
+	"license-analyzer/redis"
+	"license-analyzer/router"
 )
 
-func helloWorld(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, "HelloWorld")
-}
-
-func check(l1 string, l2 string) string {
-	if l1 == "GPL-2.0-only" && l2 == "LGPL-2.0-only" {
-		return "冲突"
-	}
-	switch l1 {
-	case "GPL-2.0-only":
-		switch l2 {
-		case "LGPL-3.0-only":
-			return "冲突"
-		case "GPL-3.0-only":
-			return "冲突"
-		case "AGPL-3.0-only":
-			return "冲突"
-		case "MS-RL":
-			return "冲突"
-		case "ODbL-1.0":
-			return "冲突"
-		case "OSL-3.0":
-			return "冲突"
-		case "Vim":
-			return "冲突"
-		case "LPL-1.02":
-			return "冲突"
-		case "Apache-2.0":
-			return "冲突"
-		case "ECL-2.0":
-			return "冲突"
-		case "php-3.01":
-			return "冲突"
-		}
-	}
-	return "合法"
-}
-
-func licenseCheck(c *gin.Context) {
-	l1 := c.Query("l1")
-	l2 := c.Query("l2")
-	c.IndentedJSON(http.StatusOK, check(l1, l2))
-}
-
 func main() {
-	router := gin.Default()
-	router.GET("/helloWorld", helloWorld)
-	router.GET("/check", licenseCheck)
-	router.Run("localhost:8080")
+	// 读取和解析配置文件(可以包括对日志的配置)
+	conf.ReadConfFile()
+	// 设置全局日志(输出接下来操作的错误信息)
+	logger.SetLoggerConfig()
+	// 设置数据库
+	mysql.SetMySQL()
+	redis.SetRedis()
+	// 运行服务
+	router.SetRouterAndRun()
 }
