@@ -32,3 +32,4 @@ logger: 全局日志配置
 
 util 其它杂项，如: 生成验证码 发邮件等
 
+testProject 用于测试功能的java项目
