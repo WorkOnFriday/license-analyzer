@@ -33,3 +33,14 @@ logger: 全局日志配置
 util 其它杂项，如: 生成验证码 发邮件等
 
 testProject 用于测试功能的java项目
+
+### scanner输出格式调整：
+Scan result as follows:
+```json
+{
+  "external":
+    [{"ScannerTest1/lib/DependedProject.jar":"GENERAL PUBLIC LICENSE Version 2"}],
+  "local":
+    [{"ScannerTest1/License.txt":"GENERAL PUBLIC LICENSE Version 3"}]
+}
+```

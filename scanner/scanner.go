@@ -3,6 +3,7 @@ package scanner
 import (
 	"archive/zip"
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -49,30 +50,32 @@ func main() {
 			}
 		}
 
-		result := make(map[string]string)
-		external := make(map[string]string)
-		local := make(map[string]string)
+		result := make(map[string]interface{})
+		external := make([]map[string]interface{}, 0)
+		local := make([]map[string]interface{}, 0)
+
 		zipDeCompress(param, ProjectTmp)
 
-		//result = shallowScan(DIR)
-
+		//result = shallowScan(ProjectTmp)
 		deepScan(ProjectTmp, &result)
 
 		re1 := regexp.MustCompile(".*?\\.[jarJAR]*")
 		for k, v := range result {
 			if strings.HasPrefix(k, "tmp") {
-				//fmt.Println(re1.FindString(k))
-				external[re1.FindString(k)[len("tmp/project_tmp/"):]] = v
+				tk := re1.FindString(k)[len("tmp/project_tmp/"):]
+				external = append(external, map[string]interface{}{tk: v})
 			} else {
-				local[k[len("project_tmp/"):]] = v
+				local = append(local, map[string]interface{}{k[len("project_tmp/"):]: v})
 			}
 		}
 
-		if len(result) == 0 && len(local) == 0 {
-			fmt.Println("License Missing!!!")
-		} else {
-			fmt.Printf("relay module: %v\nlocal module: %v", external, local)
+		t := map[string]interface{}{"external": external, "local": local}
+
+		marshal, err := json.Marshal(t)
+		if err != nil {
+			log.Fatalln(err)
 		}
+		fmt.Printf("Scan result: %v", string(marshal))
 
 		defer os.RemoveAll(ProjectTmp)
 
@@ -154,7 +157,7 @@ func scan(fileName string) string {
 	return "other license"
 }
 
-func deepScan(filePath string, result *map[string]string) {
+func deepScan(filePath string, result *map[string]interface{}) {
 	if info, err := os.Stat(filePath); err == nil {
 		if !info.IsDir() {
 			name := strings.Split(strings.ToUpper(info.Name()), ".")
@@ -181,9 +184,9 @@ func deepScan(filePath string, result *map[string]string) {
 	}
 }
 
-func shallowScan(path string) map[string]string {
+func shallowScan(path string) map[string]interface{} {
 	//If the dependent module only needs to scan the outermost layer, use this
-	result := make(map[string]string)
+	result := make(map[string]interface{})
 	files, err := os.ReadDir(path)
 	if err != nil {
 		log.Fatalln(err)
