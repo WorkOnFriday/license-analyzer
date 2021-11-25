@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<project name="ScannerTest4" basedir=".">
+    <property name="build" value="build" />
+    <property name="src" value="." />
+    <property name="lib" value="lib" />
+
+    <path id="antlib2">
+        <fileset dir="antlib2">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+
+    <path id="3rd-party-classpath">
+        <fileset dir="${lib}">
+            <include name="**/*.jar" />
+        </fileset>
+        <pathelement location="antlib/DependedProject2.jar"/>
+        <path refid="antlib2"></path>
+    </path>
+
+    <target name="init">
+        <mkdir dir="${build}" />
+    </target>
+
+    <target name="build">
+        <javac srcdir="${src}" destdir="${build}"
+               includeantruntime="false">
+            <classpath refid="3rd-party-classpath" />
+        </javac>
+    </target>
+
+    <target name="run">
+        <java classname="work.Main">
+            <classpath>
+                <pathelement location="${build}" />
+                <path refid="3rd-party-classpath" />
+            </classpath>
+        </java>
+    </target>
+</project>
