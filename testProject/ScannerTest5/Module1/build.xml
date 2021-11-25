@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<project name="Module1" basedir=".">
+    <property name="build" value="build"/>
+    <property name="src" value="."/>
+    <property name="lib" value="lib"/>
+
+    <target name="init">
+        <mkdir dir="${build}"/>
+    </target>
+
+    <target name="build">
+        <javac srcdir="${src}" destdir="${build}"
+               includeantruntime="false">
+            <classpath>
+                <fileset dir="${lib}">
+                    <include name="**/*.jar" />
+                </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="run">
+        <java classname="lgpl2p1Only.Lgpl2p1Only">
+            <classpath>
+                <pathelement location="${build}"/>
+                <fileset dir="${lib}">
+                    <include name="**/*.jar" />
+                </fileset>
+            </classpath>
+        </java>
+    </target>
+
+</project>

@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+
+<project name="Module2" basedir=".">
+    <property name="build" value="build"/>
+    <property name="src" value="."/>
+    <property name="antlib" value="antlib"/>
+
+    <target name="init">
+        <mkdir dir="${build}"/>
+    </target>
+
+    <path id="3rd-party-classpath">
+        <pathelement location="antlib/DependedProject2.jar"/>
+    </path>
+
+
+    <target name="build">
+        <javac srcdir="${src}" destdir="${build}"
+               includeantruntime="false">
+            <classpath refid="3rd-party-classpath" />
+        </javac>
+    </target>
+
+    <target name="run">
+        <java classname="lgpl2p1OrLater.lgpl2p1OrLater">
+            <classpath>
+                <pathelement location="${build}" />
+                <path refid="3rd-party-classpath" />
+            </classpath>
+        </java>
+    </target>
+
+</project>
