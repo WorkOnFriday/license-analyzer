@@ -1,11 +1,13 @@
 package main
 
 import (
+	"github.com/sirupsen/logrus"
 	"license-analyzer/conf"
 	"license-analyzer/logger"
 	"license-analyzer/mysql"
 	"license-analyzer/redis"
 	"license-analyzer/router"
+	"license-analyzer/util"
 )
 
 func main() {
@@ -16,6 +18,8 @@ func main() {
 	// 设置数据库
 	mysql.SetMySQL()
 	redis.SetRedis()
+	logrus.Infoln("Fetch result: ",
+		util.FetchHTMLItemInnerText("https://www.baidu.com/","span.title-content-title"))
 	// 运行服务
 	router.SetRouterAndRun()
 }
