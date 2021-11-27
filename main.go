@@ -18,8 +18,9 @@ func main() {
 	// 设置数据库
 	mysql.SetMySQL()
 	redis.SetRedis()
-	logrus.Infoln("Fetch result: ",
-		util.FetchHTMLItemInnerText("https://www.baidu.com/","span.title-content-title"))
+	result, err := util.FetchDynamicHTMLItemInnerText("https://mvnrepository.com/artifact/org.springframework/spring-core",
+		"#maincontent > table > tbody > tr:nth-child(1) > td > span")
+	logrus.Infoln("Fetch result: ", result, err)
 	// 运行服务
 	router.SetRouterAndRun()
 }
