@@ -8,7 +8,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -59,9 +58,7 @@ func main() {
 		//result = shallowScan(ProjectTmp)
 		deepScan(ProjectTmp, &result)
 		fmt.Println(result)
-		//for key, value := range result {
-		//
-		//}
+
 		re1 := regexp.MustCompile(".*?\\.[jarJAR]*")
 		for k, v := range result {
 			if strings.HasPrefix(k, "tmp") {
@@ -80,8 +77,9 @@ func main() {
 		}
 		fmt.Printf("Scan result: %v\n", string(marshal))
 		fmt.Println(javaScan(ProjectTmp + "/ScannerTest2/src/work/gpl3"))
+		fmt.Println(findAllExternalModule(external))
 
-		defer os.RemoveAll(ProjectTmp)
+		//defer os.RemoveAll(ProjectTmp)
 
 	} else if suffix == "" || suffix == ".TXT" || suffix == ".LICENSE" {
 		fmt.Println(param, scan(param))
@@ -163,7 +161,7 @@ func scan(fileName string) string {
 
 func deepScan(filePath string, result *map[string]interface{}) {
 	if info, err := os.Stat(filePath); err == nil {
-		if !info.IsDir() {
+		if !info.IsDir() || strings.EqualFold(info.Name(), "out") {
 			name := strings.Split(strings.ToUpper(info.Name()), ".")
 			if name[0] == "LICENSE" || name[0] == "COPYING" || name[len(name)-1] == "LICENSE" {
 				(*result)[filePath] = scan(filePath)
@@ -181,7 +179,7 @@ func deepScan(filePath string, result *map[string]interface{}) {
 			defer f.Close()
 			names, _ := f.Readdirnames(0)
 			for _, name := range names {
-				newPath := path.Join(filePath, name)
+				newPath := filepath.Join(filePath, name)
 				deepScan(newPath, result)
 			}
 		}
@@ -256,5 +254,40 @@ func javaScan(path string) []string {
 		}
 	}
 
+	return result
+}
+
+func findAllExternalModule(tmp []map[string]interface{}) map[string]interface{} {
+	result := make(map[string]interface{})
+	arr := make([]string, 0)
+	for _, tmpMap := range tmp {
+		for key, _ := range tmpMap {
+			filePath := filepath.Join(DIR, ProjectTmp, key)
+			if !strings.HasSuffix(key, ".jar") {
+				filePath, _ = filepath.Split(filePath)
+			}
+			files, err := os.ReadDir(filePath)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			for _, file := range files {
+				if !file.IsDir() || strings.EqualFold(file.Name(), "META-INF") {
+					continue
+				}
+				f, _ := os.Open(filepath.Join(filePath, file.Name()))
+				defer f.Close()
+				names, _ := f.Readdirnames(0)
+				for {
+					if len(names) != 1 {
+						result[key] = append(arr, f.Name())
+						break
+					}
+					f, _ = os.Open(filepath.Join(filePath, names[0]))
+					defer f.Close()
+					names, _ = f.Readdirnames(0)
+				}
+			}
+		}
+	}
 	return result
 }
