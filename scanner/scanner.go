@@ -58,7 +58,10 @@ func main() {
 
 		//result = shallowScan(ProjectTmp)
 		deepScan(ProjectTmp, &result)
-
+		fmt.Println(result)
+		//for key, value := range result {
+		//
+		//}
 		re1 := regexp.MustCompile(".*?\\.[jarJAR]*")
 		for k, v := range result {
 			if strings.HasPrefix(k, "tmp") {
@@ -75,7 +78,8 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		fmt.Printf("Scan result: %v", string(marshal))
+		fmt.Printf("Scan result: %v\n", string(marshal))
+		fmt.Println(javaScan(ProjectTmp + "/ScannerTest2/src/work/gpl3"))
 
 		defer os.RemoveAll(ProjectTmp)
 
@@ -168,7 +172,7 @@ func deepScan(filePath string, result *map[string]interface{}) {
 				os.MkdirAll(tmp, os.ModePerm)
 				zipDeCompress(filePath, tmp)
 				deepScan(tmp, result)
-				defer os.RemoveAll(tmp)
+				//defer os.RemoveAll(tmp)
 			}
 			return
 		} else {
@@ -204,5 +208,53 @@ func shallowScan(path string) map[string]interface{} {
 			result[fileName] = scan(fileName)
 		}
 	}
+	return result
+}
+
+func dependencyAnalyze(external, local []map[string]interface{}) {
+	var dependency []string = javaScan("")
+	for _, licensesPath := range local {
+		fmt.Println(licensesPath)
+	}
+	fmt.Println(dependency)
+}
+
+func javaScan(path string) []string {
+	result := make([]string, 0)
+	files, err := os.ReadDir(path)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	for _, fileName := range files {
+		if !fileName.IsDir() && strings.HasSuffix(strings.ToLower(fileName.Name()), ".java") {
+			file, err := os.Open(filepath.Join(path, fileName.Name()))
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer func(file *os.File) {
+				err := file.Close()
+				if err != nil {
+					fmt.Println(err.Error())
+				}
+			}(file)
+
+			scanner := bufio.NewScanner(file)
+			for scanner.Scan() {
+				line := strings.Trim(scanner.Text(), " ")
+				if !strings.HasPrefix(line, "import ") {
+					continue
+				}
+				for {
+					if !strings.HasPrefix(line, "import ") {
+						break
+					}
+					result = append(result, strings.Split(strings.Trim(line[6:], " "), ".")[0])
+					scanner.Scan()
+					line = strings.Trim(scanner.Text(), " ")
+				}
+			}
+		}
+	}
+
 	return result
 }
