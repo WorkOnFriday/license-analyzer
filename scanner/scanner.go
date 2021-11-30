@@ -23,8 +23,8 @@ const (
 	COPYRIGHT = "COPYRIGHT"
 	BSD3      = "BSD 3-CLAUSE LICENSE"
 	EUPL      = "EUROPEAN UNION PUBLIC LICENCE"
-	MS_PL     = "MICROSOFT PUBLIC LICENSE"
-	MS_RL     = "MICROSOFT RECIPROCAL LICENSE"
+	MsPl      = "MICROSOFT PUBLIC LICENSE"
+	MsRl      = "MICROSOFT RECIPROCAL LICENSE"
 
 	DIR        = "./tmp"
 	ProjectTmp = "./project_tmp"
@@ -41,7 +41,7 @@ func main() {
 	} else {
 		param = os.Args[1]
 	}
-	licenses = append(licenses, MIT, APACHE, COPYRIGHT, LGPL, GPL, BSD3, EUPL, MS_RL, MS_PL)
+	licenses = append(licenses, MIT, APACHE, COPYRIGHT, LGPL, GPL, BSD3, EUPL, MsRl, MsPl)
 
 	suffix := strings.ToUpper(filepath.Ext(param))
 	//fmt.Println(suffix)
@@ -79,8 +79,8 @@ func main() {
 			log.Fatalln(err)
 		}
 		fmt.Printf("Scan result: %v\n", string(marshal))
-		fmt.Println(findAllExternalModule(external))
-		fmt.Println(findAllLocalModule(local))
+		fmt.Println("all external modules: ", findAllExternalModule(external))
+		fmt.Println("all local modules: ", findAllLocalModule(local))
 		dependency, _ := json.Marshal(dependencyAnalyze(findAllExternalModule(external), local))
 		fmt.Println("dependency result: ", string(dependency))
 
@@ -220,7 +220,7 @@ func shallowScan(path string) map[string]interface{} {
 func dependencyAnalyze(externalModules map[string][]string, local []map[string]interface{}) map[string][]string {
 	dependency := make(map[string][]string)
 	for _, tmpMap := range local {
-		for licensePath, _ := range tmpMap {
+		for licensePath := range tmpMap {
 			modulePath := filepath.Dir(licensePath)
 			var tmpArr []string
 			javaScan(filepath.Join(ProjectTmp, modulePath), &tmpArr)
@@ -242,6 +242,11 @@ func dependencyAnalyze(externalModules map[string][]string, local []map[string]i
 	return dependency
 }
 
+/**
+scan all java file to find import modules
+@param: filePath -> module path
+@param: result -> an array to store result
+*/
 func javaScan(filePath string, result *[]string) {
 	if info, err := os.Stat(filePath); err == nil {
 		if !info.IsDir() {
@@ -287,11 +292,15 @@ func javaScan(filePath string, result *[]string) {
 	}
 }
 
+/**
+find all external modules from array of module path
+
+*/
 func findAllExternalModule(tmp []map[string]interface{}) map[string][]string {
 	result := make(map[string][]string)
 	arr := make([]string, 0)
 	for _, tmpMap := range tmp {
-		for key, _ := range tmpMap {
+		for key := range tmpMap {
 			filePath := filepath.Join(DIR, ProjectTmp, key)
 			if !strings.HasSuffix(key, ".jar") {
 				filePath = filepath.Dir(filePath)
@@ -340,6 +349,9 @@ func findAllLocalModule(tmp []map[string]interface{}) map[string]interface{} {
 	return result
 }
 
+/**
+remove repeat element from []string
+*/
 func removeRepeatElement(list []string) []string {
 	flag := make(map[string]bool)
 	tmp := make([]string, 0)
@@ -355,6 +367,10 @@ func removeRepeatElement(list []string) []string {
 	return tmp
 }
 
+/**
+judge s1, s2 module equal or not
+@param: depth -> the max depth
+*/
 func moduleEqual(depth int, s1, s2 string) bool {
 	t1 := strings.Split(s1, ".")
 	t2 := strings.Split(s2, ".")
