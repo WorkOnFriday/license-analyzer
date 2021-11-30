@@ -57,7 +57,6 @@ func main() {
 
 		//result = shallowScan(ProjectTmp)
 		deepScan(ProjectTmp, &result)
-		fmt.Println(result)
 
 		re1 := regexp.MustCompile(".*?\\.[jarJAR]*")
 		for k, v := range result {
@@ -76,10 +75,12 @@ func main() {
 			log.Fatalln(err)
 		}
 		fmt.Printf("Scan result: %v\n", string(marshal))
-		fmt.Println(javaScan(ProjectTmp + "/ScannerTest2/src/work/gpl3"))
 		fmt.Println(findAllExternalModule(external))
+		fmt.Println(findAllLocalModule(local))
+		fmt.Println(dependencyAnalyze(findAllExternalModule(external), local))
 
-		//defer os.RemoveAll(ProjectTmp)
+		defer os.RemoveAll(ProjectTmp)
+		defer os.RemoveAll(DIR)
 
 	} else if suffix == "" || suffix == ".TXT" || suffix == ".LICENSE" {
 		fmt.Println(param, scan(param))
@@ -209,12 +210,25 @@ func shallowScan(path string) map[string]interface{} {
 	return result
 }
 
-func dependencyAnalyze(external, local []map[string]interface{}) {
-	var dependency []string = javaScan("")
-	for _, licensesPath := range local {
-		fmt.Println(licensesPath)
+func dependencyAnalyze(externalModules map[string][]string, local []map[string]interface{}) map[string]interface{} {
+	dependency := make(map[string]interface{})
+	for _, tmpMap := range local {
+		for licensePath, _ := range tmpMap {
+			modulePath := filepath.Dir(licensePath)
+			//fmt.Println(modulePath)
+			for _, module := range javaScan(filepath.Join(ProjectTmp, modulePath)) {
+				var arr []string
+				for externalPath, external := range externalModules {
+					for _, v := range external {
+						if strings.EqualFold(v, module) {
+							dependency[modulePath] = append(arr, externalPath)
+						}
+					}
+				}
+			}
+		}
 	}
-	fmt.Println(dependency)
+	return dependency
 }
 
 func javaScan(path string) []string {
@@ -257,14 +271,14 @@ func javaScan(path string) []string {
 	return result
 }
 
-func findAllExternalModule(tmp []map[string]interface{}) map[string]interface{} {
-	result := make(map[string]interface{})
+func findAllExternalModule(tmp []map[string]interface{}) map[string][]string {
+	result := make(map[string][]string)
 	arr := make([]string, 0)
 	for _, tmpMap := range tmp {
 		for key, _ := range tmpMap {
 			filePath := filepath.Join(DIR, ProjectTmp, key)
 			if !strings.HasSuffix(key, ".jar") {
-				filePath, _ = filepath.Split(filePath)
+				filePath = filepath.Dir(filePath)
 			}
 			files, err := os.ReadDir(filePath)
 			if err != nil {
@@ -274,19 +288,38 @@ func findAllExternalModule(tmp []map[string]interface{}) map[string]interface{} 
 				if !file.IsDir() || strings.EqualFold(file.Name(), "META-INF") {
 					continue
 				}
-				f, _ := os.Open(filepath.Join(filePath, file.Name()))
-				defer f.Close()
-				names, _ := f.Readdirnames(0)
+				tmpDir := filepath.Join(filePath, file.Name())
+				f, err := os.ReadDir(tmpDir)
+				if err != nil {
+					log.Fatalln(err)
+				}
 				for {
-					if len(names) != 1 {
-						result[key] = append(arr, f.Name())
+					if len(f) != 1 || (len(f) == 1 && !f[0].IsDir()) {
+						//fmt.Println(tmpDir)
+						result[key] = append(arr, strings.Split(tmpDir, ".jar/")[1])
 						break
 					}
-					f, _ = os.Open(filepath.Join(filePath, names[0]))
-					defer f.Close()
-					names, _ = f.Readdirnames(0)
+					tmpDir = filepath.Join(tmpDir, f[0].Name())
+					f, err = os.ReadDir(tmpDir)
+					if err != nil {
+						log.Fatalln(err)
+					}
 				}
 			}
+		}
+	}
+	return result
+}
+
+func findAllLocalModule(tmp []map[string]interface{}) map[string]interface{} {
+	result := make(map[string]interface{})
+	for _, temMap := range tmp {
+		for key, value := range temMap {
+			module := filepath.Base(filepath.Dir(key))
+			if strings.EqualFold(module, ".") {
+				module = filepath.Dir(key)
+			}
+			result[module] = value
 		}
 	}
 	return result
