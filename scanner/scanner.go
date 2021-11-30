@@ -16,12 +16,16 @@ import (
 var licenses []string
 
 const (
-	GPL        = "GENERAL PUBLIC LICENSE"
-	LGPL       = "LESSER GENERAL PUBLIC LICENSE"
-	MIT        = "MIT LICENSE"
-	APACHE     = "APACHE LICENSE"
-	COPYRIGHT  = "COPYRIGHT"
-	BSD3       = "BSD 3-CLAUSE LICENSE"
+	GPL       = "GENERAL PUBLIC LICENSE"
+	LGPL      = "LESSER GENERAL PUBLIC LICENSE"
+	MIT       = "MIT LICENSE"
+	APACHE    = "APACHE LICENSE"
+	COPYRIGHT = "COPYRIGHT"
+	BSD3      = "BSD 3-CLAUSE LICENSE"
+	EUPL      = "EUROPEAN UNION PUBLIC LICENCE"
+	MS_PL     = "MICROSOFT PUBLIC LICENSE"
+	MS_RL     = "MICROSOFT RECIPROCAL LICENSE"
+
 	DIR        = "./tmp"
 	ProjectTmp = "./project_tmp"
 )
@@ -37,7 +41,7 @@ func main() {
 	} else {
 		param = os.Args[1]
 	}
-	licenses = append(licenses, MIT, APACHE, COPYRIGHT, GPL, LGPL, BSD3)
+	licenses = append(licenses, MIT, APACHE, COPYRIGHT, LGPL, GPL, BSD3, EUPL, MS_RL, MS_PL)
 
 	suffix := strings.ToUpper(filepath.Ext(param))
 	//fmt.Println(suffix)
@@ -57,11 +61,11 @@ func main() {
 
 		//result = shallowScan(ProjectTmp)
 		deepScan(ProjectTmp, &result)
-
-		re1 := regexp.MustCompile(".*?\\.[jarJAR]*")
+		re1 := regexp.MustCompile(".*\\.[jarJAR]*")
 		for k, v := range result {
 			if strings.HasPrefix(k, "tmp") {
 				tk := re1.FindString(k)[len("tmp/project_tmp/"):]
+				//fmt.Println(tk, "-------")
 				external = append(external, map[string]interface{}{tk: v})
 			} else {
 				local = append(local, map[string]interface{}{k[len("project_tmp/"):]: v})
@@ -77,11 +81,11 @@ func main() {
 		fmt.Printf("Scan result: %v\n", string(marshal))
 		fmt.Println(findAllExternalModule(external))
 		fmt.Println(findAllLocalModule(local))
-		fmt.Println(dependencyAnalyze(findAllExternalModule(external), local))
+		dependency, _ := json.Marshal(dependencyAnalyze(findAllExternalModule(external), local))
+		fmt.Println("dependency result: ", string(dependency))
 
 		defer os.RemoveAll(ProjectTmp)
 		defer os.RemoveAll(DIR)
-
 	} else if suffix == "" || suffix == ".TXT" || suffix == ".LICENSE" {
 		fmt.Println(param, scan(param))
 	} else {
@@ -142,12 +146,16 @@ func scan(fileName string) string {
 		for _, license := range licenses {
 			if strings.Contains(lineText, license) {
 				if strings.EqualFold(license, APACHE) || strings.EqualFold(license, LGPL) ||
-					strings.EqualFold(license, GPL) {
+					strings.EqualFold(license, GPL) || strings.EqualFold(license, EUPL) {
 					scanner.Scan()
 					version := scanner.Text()
+					for strings.TrimSpace(version) == "" {
+						scanner.Scan()
+						version = scanner.Text()
+					}
 					version = strings.TrimLeft(version, " ")
 					version = strings.Split(version, ",")[0]
-					//fmt.Println(license, version)
+					//fmt.Println(license, "-------------", version)
 					return license + " " + version
 				} else {
 					//fmt.Println(license)
@@ -156,7 +164,6 @@ func scan(fileName string) string {
 			}
 		}
 	}
-	//fmt.Println("other license")
 	return "other license"
 }
 
@@ -210,18 +217,22 @@ func shallowScan(path string) map[string]interface{} {
 	return result
 }
 
-func dependencyAnalyze(externalModules map[string][]string, local []map[string]interface{}) map[string]interface{} {
-	dependency := make(map[string]interface{})
+func dependencyAnalyze(externalModules map[string][]string, local []map[string]interface{}) map[string][]string {
+	dependency := make(map[string][]string)
 	for _, tmpMap := range local {
 		for licensePath, _ := range tmpMap {
 			modulePath := filepath.Dir(licensePath)
-			//fmt.Println(modulePath)
-			for _, module := range javaScan(filepath.Join(ProjectTmp, modulePath)) {
-				var arr []string
-				for externalPath, external := range externalModules {
-					for _, v := range external {
-						if strings.EqualFold(v, module) {
-							dependency[modulePath] = append(arr, externalPath)
+			var tmpArr []string
+			javaScan(filepath.Join(ProjectTmp, modulePath), &tmpArr)
+			fmt.Println(tmpArr, "------------")
+			for _, module := range removeRepeatElement(tmpArr) {
+				if !strings.HasPrefix(module, "java.") {
+					for externalPath, external := range externalModules {
+						for _, v := range external {
+							if moduleEqual(3, strings.ReplaceAll(v, "/", "."), module) {
+								dependency[modulePath] = append(dependency[modulePath], externalPath)
+								//fmt.Println(dependency, "+++++++")
+							}
 						}
 					}
 				}
@@ -231,44 +242,49 @@ func dependencyAnalyze(externalModules map[string][]string, local []map[string]i
 	return dependency
 }
 
-func javaScan(path string) []string {
-	result := make([]string, 0)
-	files, err := os.ReadDir(path)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	for _, fileName := range files {
-		if !fileName.IsDir() && strings.HasSuffix(strings.ToLower(fileName.Name()), ".java") {
-			file, err := os.Open(filepath.Join(path, fileName.Name()))
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer func(file *os.File) {
-				err := file.Close()
+func javaScan(filePath string, result *[]string) {
+	if info, err := os.Stat(filePath); err == nil {
+		if !info.IsDir() {
+			if strings.HasSuffix(strings.ToLower(info.Name()), ".java") {
+				//fmt.Println(info.Name(), "-----------")
+				file, err := os.Open(filepath.Join(filePath))
 				if err != nil {
-					fmt.Println(err.Error())
+					log.Fatal(err)
 				}
-			}(file)
-
-			scanner := bufio.NewScanner(file)
-			for scanner.Scan() {
-				line := strings.Trim(scanner.Text(), " ")
-				if !strings.HasPrefix(line, "import ") {
-					continue
-				}
-				for {
-					if !strings.HasPrefix(line, "import ") {
-						break
+				defer func(file *os.File) {
+					err := file.Close()
+					if err != nil {
+						fmt.Println(err.Error())
 					}
-					result = append(result, strings.Split(strings.Trim(line[6:], " "), ".")[0])
-					scanner.Scan()
-					line = strings.Trim(scanner.Text(), " ")
+				}(file)
+
+				scanner := bufio.NewScanner(file)
+				for scanner.Scan() {
+					line := strings.Trim(scanner.Text(), " ")
+					if !strings.HasPrefix(line, "import ") {
+						continue
+					}
+					for {
+						if !strings.HasPrefix(line, "import ") {
+							break
+						}
+						*result = append(*result, strings.Trim(line[6:], " "))
+						scanner.Scan()
+						line = strings.Trim(scanner.Text(), " ")
+					}
 				}
+			}
+			return
+		} else {
+			f, _ := os.Open(filePath)
+			defer f.Close()
+			names, _ := f.Readdirnames(0)
+			for _, name := range names {
+				newPath := filepath.Join(filePath, name)
+				javaScan(newPath, result)
 			}
 		}
 	}
-
-	return result
 }
 
 func findAllExternalModule(tmp []map[string]interface{}) map[string][]string {
@@ -295,7 +311,6 @@ func findAllExternalModule(tmp []map[string]interface{}) map[string][]string {
 				}
 				for {
 					if len(f) != 1 || (len(f) == 1 && !f[0].IsDir()) {
-						//fmt.Println(tmpDir)
 						result[key] = append(arr, strings.Split(tmpDir, ".jar/")[1])
 						break
 					}
@@ -323,4 +338,33 @@ func findAllLocalModule(tmp []map[string]interface{}) map[string]interface{} {
 		}
 	}
 	return result
+}
+
+func removeRepeatElement(list []string) []string {
+	flag := make(map[string]bool)
+	tmp := make([]string, 0)
+	index := 0
+	for _, v := range list {
+		_, ok := flag[v]
+		if !ok {
+			tmp = append(tmp, v)
+			flag[v] = true
+		}
+		index++
+	}
+	return tmp
+}
+
+func moduleEqual(depth int, s1, s2 string) bool {
+	t1 := strings.Split(s1, ".")
+	t2 := strings.Split(s2, ".")
+	for i := 0; i < depth; i++ {
+		if len(t1) == i || len(t2) == i {
+			break
+		}
+		if !strings.EqualFold(t1[i], t2[i]) {
+			return false
+		}
+	}
+	return true
 }
