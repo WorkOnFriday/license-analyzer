@@ -61,11 +61,11 @@ func main() {
 
 		//result = shallowScan(ProjectTmp)
 		deepScan(ProjectTmp, &result)
-		re1 := regexp.MustCompile(".*\\.[jarJAR]*")
+		//fmt.Println(result, "----------------------------------")
+		re1 := regexp.MustCompile(".*\\.[jarJAR]{3}")
 		for k, v := range result {
 			if strings.HasPrefix(k, "tmp") {
 				tk := re1.FindString(k)[len("tmp/project_tmp/"):]
-				//fmt.Println(tk, "-------")
 				external = append(external, map[string]interface{}{tk: v})
 			} else {
 				local = append(local, map[string]interface{}{k[len("project_tmp/"):]: v})
@@ -219,25 +219,46 @@ func shallowScan(path string) map[string]interface{} {
 
 func dependencyAnalyze(externalModules map[string][]string, local []map[string]interface{}) map[string][]string {
 	dependency := make(map[string][]string)
+	mainModule := ""
 	for _, tmpMap := range local {
 		for licensePath := range tmpMap {
-			modulePath := filepath.Dir(licensePath)
 			var tmpArr []string
+			var tmpArr2 []string
+			modulePath := filepath.Dir(licensePath)
+			if !strings.Contains(modulePath, "/") && len(local) > 1 {
+				mainModule = modulePath
+				continue
+			}
 			javaScan(filepath.Join(ProjectTmp, modulePath), &tmpArr)
-			fmt.Println(tmpArr, "------------")
-			for _, module := range removeRepeatElement(tmpArr) {
+			//fmt.Println(tmpArr, "------------")
+			for _, s := range tmpArr {
+				tmpArr2 = append(tmpArr2, removeModuleSuffix(s))
+			}
+			for _, module := range removeRepeatElement(tmpArr2) {
 				if !strings.HasPrefix(module, "java.") {
 					for externalPath, external := range externalModules {
 						for _, v := range external {
 							if moduleEqual(3, strings.ReplaceAll(v, "/", "."), module) {
 								dependency[modulePath] = append(dependency[modulePath], externalPath)
-								//fmt.Println(dependency, "+++++++")
 							}
 						}
 					}
 				}
 			}
 		}
+	}
+	// finally, remove repeat module
+	for k, v := range dependency {
+		dependency[k] = removeRepeatElement(v)
+	}
+
+	if mainModule != "" {
+		var mainModuleArr []string
+		for _, v := range dependency {
+			mainModuleArr = append(mainModuleArr, v...)
+		}
+		mainModuleArr = removeRepeatElement(mainModuleArr)
+		dependency[mainModule] = mainModuleArr
 	}
 	return dependency
 }
@@ -383,4 +404,13 @@ func moduleEqual(depth int, s1, s2 string) bool {
 		}
 	}
 	return true
+}
+
+func removeModuleSuffix(module string) string {
+	re := regexp.MustCompile("\\..[^.]+;")
+	suffix := re.FindStringIndex(module)
+	if len(suffix) == 0 {
+		return module
+	}
+	return module[:suffix[0]]
 }

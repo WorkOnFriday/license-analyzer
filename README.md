@@ -44,3 +44,16 @@ Scan result as follows:
     [{"ScannerTest1/License.txt":"GENERAL PUBLIC LICENSE Version 3"}]
 }
 ```
+
+### dependency analyze result：
+```json
+{
+  "ScannerTest4": [
+    "ScannerTest4/lib/DependedProject.jar",
+    "ScannerTest4/antlib/DependedProject2.jar",
+    "ScannerTest4/antlib2/DependedProject3.jar",
+    "ScannerTest4/lib/mockito-core-2.28.2.jar",
+    "ScannerTest4/lib/jmh-core-1.33.jar"
+  ]
+}
+```
