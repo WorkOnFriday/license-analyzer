@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -83,6 +84,9 @@ func main() {
 		fmt.Println("all local modules: ", findAllLocalModule(local))
 		dependency, _ := json.Marshal(dependencyAnalyze(findAllExternalModule(external), local))
 		fmt.Println("dependency result: ", string(dependency))
+
+		m, d := PomScan("./pom.xml")
+		fmt.Println(m, "++++++++++", d)
 
 		defer os.RemoveAll(ProjectTmp)
 		defer os.RemoveAll(DIR)
@@ -247,10 +251,6 @@ func dependencyAnalyze(externalModules map[string][]string, local []map[string]i
 			}
 		}
 	}
-	// finally, remove repeat module
-	for k, v := range dependency {
-		dependency[k] = removeRepeatElement(v)
-	}
 
 	if mainModule != "" {
 		var mainModuleArr []string
@@ -259,6 +259,11 @@ func dependencyAnalyze(externalModules map[string][]string, local []map[string]i
 		}
 		mainModuleArr = removeRepeatElement(mainModuleArr)
 		dependency[mainModule] = mainModuleArr
+	}
+
+	// finally, remove repeat module
+	for k, v := range dependency {
+		dependency[k] = removeRepeatElement(v)
 	}
 	return dependency
 }
@@ -341,8 +346,7 @@ func findAllExternalModule(tmp []map[string]interface{}) map[string][]string {
 				}
 				for {
 					if len(f) != 1 || (len(f) == 1 && !f[0].IsDir()) {
-						fmt.Println(tmpDir, "---------")
-						result[key] = append(arr, strings.Split(tmpDir, ".jar\\")[1])
+						result[key] = append(arr, strings.Split(tmpDir, ".jar/")[1])
 						break
 					}
 					tmpDir = filepath.Join(tmpDir, f[0].Name())
@@ -414,4 +418,40 @@ func removeModuleSuffix(module string) string {
 		return module
 	}
 	return module[:suffix[0]]
+}
+
+// PomScan */
+/*
+@return modules []string
+@return dependencies map[string]string,
+dependencies format is {groupId/artifactId: version} and the default version is latests
+*/
+func PomScan(fileName string) ([]string, map[string]string) {
+	b, err := ioutil.ReadFile(fileName) // just pass the file name
+	if err != nil {
+		fmt.Print(err)
+	}
+	file := string(b)
+	var modules []string
+	dependencies := make(map[string]string)
+	re := regexp.MustCompile("<dependency>.*?</dependency>")
+	re1 := regexp.MustCompile("<groupId>.*</")
+	re2 := regexp.MustCompile(">.*?<")
+	re3 := regexp.MustCompile("<module>.*?</module>")
+	t := re.FindAllString(strings.ReplaceAll(file, "\n", ""), -1)
+	for _, s := range t {
+		tArr := re2.FindAllString(re1.FindString(s), -1)
+		k := strings.Trim(tArr[0], "<> ") + "/" + strings.Trim(tArr[2], "<> ")
+		v := "latest"
+		fmt.Println(k, "--------")
+		if len(tArr) == 6 {
+			v = strings.Trim(tArr[4], "<> ")
+		}
+		dependencies[k] = v
+	}
+	for _, v := range re3.FindAllString(file, -1) {
+		modules = append(modules, strings.Trim(re2.FindString(v), "<>"))
+	}
+
+	return modules, dependencies
 }
