@@ -6,4 +6,4 @@
 
 主项目，Module1，Module2使用依赖的配置分别在在ScannerTest3.iml，Module1/Module1.iml，Module2/Module2.iml中（iml由idea生成，作用于idea开发的项目）
 
-对此项目应能检测出Module1所使用的GPL-3.0-only许可证与其依赖包使用的GPL-2.0-only冲突，Module1所使用的Apache-2.0许可证与其依赖包使用的GPL-2.0-only冲突，检测结果也可以包为单位，即Module1.gpl3与其依赖包冲突。
+对此项目应能检测出Module1所使用的GPL-3.0-only许可证与其依赖包使用的GPL-2.0-only冲突，Module2所使用的Apache-2.0许可证与其依赖包使用的GPL-2.0-only冲突，检测结果也可以包为单位，即Module1.gpl3与其依赖包冲突。

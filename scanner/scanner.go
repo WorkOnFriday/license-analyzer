@@ -341,7 +341,8 @@ func findAllExternalModule(tmp []map[string]interface{}) map[string][]string {
 				}
 				for {
 					if len(f) != 1 || (len(f) == 1 && !f[0].IsDir()) {
-						result[key] = append(arr, strings.Split(tmpDir, ".jar/")[1])
+						fmt.Println(tmpDir, "---------")
+						result[key] = append(arr, strings.Split(tmpDir, ".jar\\")[1])
 						break
 					}
 					tmpDir = filepath.Join(tmpDir, f[0].Name())
