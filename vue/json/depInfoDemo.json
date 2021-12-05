@@ -1,0 +1,18 @@
+[
+  {
+      "package": "abc.java",
+      "dependency": ["dep1", "dep2"]
+  },
+  {
+      "package": "bcd.java",
+      "dependency": ["dep3", "dep4", "dep5", "dep6"]
+  },
+  {
+      "package": "def.java",
+      "dependency": ["dep3", "dep87", "dep5", "dep6"]
+  },
+  {
+      "package": "eee.java",
+      "dependency": ["dep9", "dep4", "dep5", "dep6"]
+  }
+]

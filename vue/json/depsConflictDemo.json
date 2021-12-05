@@ -1,0 +1,30 @@
+[
+  {
+    "packOne":"A.B",
+    "licenseOne": "lic1",
+    "packTwo": "A.C",
+    "licenseTwo": "lic2",
+    "conflictInfo": "关于冲突的具体信息，巴拉巴拉Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files "
+  },
+  {
+    "packOne":"A.fdB",
+    "licenseOne": "lic1",
+    "packTwo": "A.C",
+    "licenseTwo": "lic2",
+    "conflictInfo": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software."
+  },
+  {
+    "packOne":"A.Ber",
+    "licenseOne": "lic1",
+    "packTwo": "A.C",
+    "licenseTwo": "lic2",
+    "conflictInfo": "this software and associated documentation files "
+  },
+  {
+    "packOne":"A.werB",
+    "licenseOne": "lic13",
+    "packTwo": "A.reC",
+    "licenseTwo": "lic23",
+    "conflictInfo": "this software and associated documentation files "
+  }
+]
