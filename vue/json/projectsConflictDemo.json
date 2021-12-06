@@ -1,36 +1,36 @@
 [
   {
-    "pack":"A.B",
+    "packOne":"A.B",
     "licenseOne": "lic1",
-    "dependency": "dependency12",
+    "packTwo": "A.C",
     "licenseTwo": "lic2",
     "conflictInfo": "关于冲突的具体信息，巴拉巴拉Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files "
   },
   {
-    "pack":"A.fdB",
+    "packOne":"A.fdB",
     "licenseOne": "lic1",
-    "dependency": "dependency12",
+    "packTwo": "A.BD",
     "licenseTwo": "lic2",
     "conflictInfo": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software."
   },
   {
-    "pack":"A.Ber",
+    "packOne":"A.Ber",
     "licenseOne": "lic1",
-    "dependency": "dependency1212",
+    "packTwo": "A.E",
     "licenseTwo": "lic2",
     "conflictInfo": "this software and associated documentation files "
   },
   {
-    "pack":"A.werB",
+    "packOne":"A.werB",
     "licenseOne": "lic13",
-    "dependency": "dependency412",
+    "packTwo": "A.DE",
     "licenseTwo": "lic22",
     "conflictInfo": "this software and associated documentation files "
   },
   {
-    "pack":"A.wddderB",
+    "packOne":"A.wddderB",
     "licenseOne": "lic3313",
-    "dependency": "dependency1243",
+    "packTwo": "A.G.B",
     "licenseTwo": "lic21",
     "conflictInfo": "this software and associated documentation files "
   }

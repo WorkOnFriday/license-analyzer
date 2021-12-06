@@ -1266,7 +1266,7 @@ body:not(.header-fixed) .fullscreen-menu-toggle {
   vertical-align: middle;
   position: relative;
   width: 60%;
-  background-color: $transparent;
+  background-color:transparent;
 }
 .progress-outer .progress-inner {
   height: 1px;
@@ -1647,6 +1647,7 @@ body:not(.header-fixed) .fullscreen-menu-toggle {
 }
 .price-body {
   padding: 20px 0;
+  font-size: large;
 }
 .price-body ul {
   list-style-type: none;

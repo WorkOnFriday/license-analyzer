@@ -11,13 +11,20 @@
     <link rel="stylesheet" href="css/core.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
+
+    <link rel="stylesheet" href="css/self.css">
+
 </head>
 <body id="top" class="stickyfooter header-fixed">
 
 <div id="app">
-    
-    <h2 class="center-block">{{showTitle}}</h2>
-    <depinfo :dep_dic="depDic"></depinfo>
+
+    <h1  style="text-align: center">{{showTitle}}</h1>
+    <dep_info :dep_dic="depDic"></dep_info>
+    <deps_conflict :deps_conflict_dic="depsConflictDic"></deps_conflict>
+    <proj_conflict :proj_conflict_dic="projConflictDic"></proj_conflict>
+    <missing_license :missing_dic="missingDic"></missing_license>
+
 
 </div>
 
@@ -29,53 +36,53 @@
 
 <script>
     // axios实例
-    var instance = axios.create({
-        baseURL:"http://localhost:63342/vueproject/vuetest1/",
+    const instance = axios.create({
+        baseURL: "http://localhost:63342/vueproject/vuetest1/",
         timeout: 5000,
     });
-    const depinfo = {
+
+    //依赖信息组件
+    const dep_info = {
         template: `
           <div class="stickyfooter header-fixed">
-
-            <div class="content">
-              <main>
-                <section class="pricing-area pt90 pb30">
-
-
-                  <div class="container">
-                    <hr color="black ">
-                    <div class="row">
-                      <div class="col-xs-12">
-                        <div class="area-heading text-center">
-                          <h2 class="area-title">依赖信息</h2>
-                        </div>
+          <div class="content">
+            <main>
+              <section class="pricing-area pt90 pb30">
+                <div class="container">
+                  <hr color="black ">
+                  <div class="row">
+                    <div class="col-xs-12">
+                      <div class="area-heading text-center">
+                        <h2 class="area-title">依赖信息</h2>
                       </div>
                     </div>
-                    <div class="row">
-                    <div >
+                  </div>
+                  <div class="row">
+                    <div>
 
-                        <div v-for=" (dep,index) in dep_dic" class="col-md-4">
+                      <div v-for=" (dep,index) in dep_dic" class="col-md-4">
 
-                          <div class="pricing-table mb30">
-                            <div class="price-header">
-                              <span class="price">{{ dep.package }}</span>
-                            </div>
-                            <div class="price-body">
-                              <ul>
-                                <li v-for="each_dep in dep.dependency">{{ each_dep }}</li>
-                              </ul>
-                            </div>
+                        <div class="pricing-table mb30">
+                          <div class="price-header">
+                            <span class="price">{{ dep.package }}</span>
+                          </div>
+                          <hr>
+                          <div class="price-body">
+                            <ul>
+                              <li v-for="each_dep in dep.dependency">{{ each_dep }}</li>
+                            </ul>
                           </div>
                         </div>
                       </div>
-
-
                     </div>
-                    <hr color="black ">
+
+
                   </div>
-                </section>
-              </main>
-            </div>
+                  <hr color="black ">
+                </div>
+              </section>
+            </main>
+          </div>
           </div>
 
         `,
@@ -85,7 +92,165 @@
         props: ['dep_dic']
 
     };
+    //与依赖间冲突组件
+    const deps_conflict = {
+        template: `
+          <div class="stickyfooter header-fixed">
+          <div class="content">
+            <main>
+              <section class="pricing-area  pb30">
+                <div class="container">
 
+                  <div class="row">
+                    <div class="col-xs-12">
+                      <div class="area-heading text-center">
+                        <h2 class="area-title">与依赖间冲突</h2>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div>
+
+                      <div v-for=" (conflict,index) in deps_conflict_dic" class="col-md-4">
+
+                        <div class="pricing-table mb30 " style="height: 400px;overflow: hidden !important;">
+                          <h4 >冲突[{{index+1}}]</h4>
+                          <hr>
+<!--                          <div class="price-header">-->
+<!--                            <span class="price">{{ conflict.packOne }}</span>-->
+<!--                          </div>-->
+                          <div class="price-body text-left  test test-1 " >
+<!--                            <div class="scrollbar"></div>-->
+                            <ul>
+                              <li><span style="display:inline-block;font-weight: bold;width: 8em; ">{{conflict.pack}}</span>: {{conflict.licenseOne}}</li>
+                              <li><span style="display:inline-block;font-weight: bold;width: 8em;">{{conflict.dependency}}</span>: {{conflict.licenseTwo}}</li>
+                              <li><span style="font-weight: bold">冲突信息：</span>{{conflict.conflictInfo}}</li>
+                            </ul>
+
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+
+                  </div>
+                  <hr color="black ">
+                </div>
+              </section>
+            </main>
+          </div>
+          </div>
+        `,
+        data(){
+            return {
+                count:1
+            }
+        },
+        methods: {
+        },
+        props: ['deps_conflict_dic','test']
+    };
+    //项目中冲突
+    const proj_conflict={
+        template:`
+          <div class="stickyfooter header-fixed" v-if="proj_conflict_dic.length!=0">
+          <div class="content">
+            <main>
+              <section class="pricing-area  pb30">
+                <div class="container">
+
+                  <div class="row">
+                    <div class="col-xs-12">
+                      <div class="area-heading text-center">
+                        <h2 class="area-title">项目中冲突</h2>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div>
+
+                      <div v-for=" (conflict,index) in proj_conflict_dic" class="col-md-4">
+
+                        <div class="pricing-table mb30 " style="height: 400px;overflow: hidden !important;">
+                          <h4 >冲突[{{index+1}}]</h4>
+                          <hr>
+
+                          <div class="price-body text-left  test test-1 " >
+                            <ul>
+                              <li><span style="display:inline-block;font-weight: bold;width: 8em; ">{{conflict.packOne}}</span>: {{conflict.licenseOne}}</li>
+                              <li><span style="display:inline-block;font-weight: bold;width: 8em;">{{conflict.packTwo}}</span>: {{conflict.licenseTwo}}</li>
+                              <li><span style="font-weight: bold">冲突信息：</span>{{conflict.conflictInfo}}</li>
+                            </ul>
+
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+
+                  </div>
+                  <hr style="color: black">
+                </div>
+              </section>
+            </main>
+          </div>
+          </div>
+          <div v-else>
+          <h2>无项目中冲突</h2>
+          </div>
+        `,
+        props:['proj_conflict_dic']
+    }
+    //license缺失
+    const missing_license={
+        template:`
+          <div class="stickyfooter header-fixed" v-if="missing_dic.length!=0">
+          <div class="content">
+            <main>
+              <section class="pricing-area  pb30">
+                <div class="container">
+
+                  <div class="row">
+                    <div class="col-xs-12">
+                      <div class="area-heading text-center">
+                        <h2 class="area-title">缺失</h2>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div>
+
+                      <div v-for=" (missing,index) in missing_dic" class="col-md-4">
+
+                        <div class="pricing-table mb30 " style="height: 400px;overflow: hidden !important;">
+                          <h4 >缺失[{{index+1}}]</h4>
+                          <hr>
+
+                          <div class="price-body text-left  test test-1 " >
+                            <ul>
+                              <li><span style="font-weight: bold;">缺失包名:</span>: {{missing.missingPackage}}</li>
+                              <li><span style="font-weight: bold">推荐license：</span>{{missing.recommend}}</li>
+                            </ul>
+
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+
+                  </div>
+                  <hr color="black ">
+                </div>
+              </section>
+            </main>
+          </div>
+          </div>
+          <div v-else>
+          <h2>无项目中冲突</h2>
+          </div>
+        `,
+        props: ['missing_dic']
+    }
     const app = new Vue({
         el: '#app',
         data: {
@@ -94,26 +259,47 @@
             //  查询号码
             inquiryNum: '',
             depDic: '',
-
+            depsConflictDic:'',
+            projConflictDic:'',
+            missingDic:'dd',
+            testdata:"测试",
 
         },
         methods: {
-            getDepDic(){
+            getDepDic() {
                 //发送get方式请求
-                instance.get("json/depInfoDemo.json").then(res=>this.depDic=res.data);
+                instance.get("json/depInfoDemo.json").then(res => this.depDic = res.data);
+            },
+            getDepsConflictDic(){
+                instance.get("json/depsConflictDemo.json").then(respon => this.depsConflictDic=respon.data);
+            },
+            getProjConflictDic(){
+                instance.get("json/projectsConflictDemo.json").then(respon => this.projConflictDic=respon.data);
+            },
+            getMissingDic(){
+                instance.get("json/missingDemo.json").then(respon => this.missingDic=respon.data);
             }
         },
         components: {
-            depinfo,
+            dep_info,
+            deps_conflict,
+            proj_conflict,
+            missing_license,
         },
 
-        created(){
+        created() {
+            this.getDepsConflictDic();
             this.getDepDic();
+            this.getProjConflictDic();
+            this.getMissingDic();
+
+
         },
-
+        // updated(){
+        //     console.log(app.depDic);
+        //     console.log(app.depsConflictDic);
+        // }
     });
-
-
 
 
 </script>
