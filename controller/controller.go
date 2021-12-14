@@ -33,7 +33,7 @@ func ScannerLicenseFile(c *gin.Context) {
 	// 获取表单中的文件
 	file, err := c.FormFile("file")
 	if err != nil {
-		logrus.Error("ScannerLicenseFile get form err: %s", err.Error())
+		logrus.Error("ScannerLicenseFile get form err: ", err.Error())
 		c.Status(http.StatusBadRequest)
 		return
 	}
@@ -43,13 +43,13 @@ func ScannerLicenseFile(c *gin.Context) {
 	logrus.Debug("fileFullPath", fileFullPath)
 	// 创建文件保存路径 对于windows系统，/开头为从磁盘根目录，否则从项目根目录
 	if err = os.MkdirAll(dst, os.ModePerm); err != nil {
-		logrus.Error("ScannerLicenseFile create file directory err: %s", err.Error())
+		logrus.Error("ScannerLicenseFile create file directory err: ", dst, " ", err.Error())
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 	// 保存到磁盘
 	if err = c.SaveUploadedFile(file, fileFullPath); err != nil {
-		logrus.Error("ScannerLicenseFile upload file err: %s", err.Error())
+		logrus.Error("ScannerLicenseFile upload file err: ", err.Error())
 		c.Status(http.StatusInternalServerError)
 		return
 	}

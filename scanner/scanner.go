@@ -3,7 +3,6 @@ package scanner
 import (
 	"archive/zip"
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"io"
@@ -33,101 +32,57 @@ const (
 
 var licenses = []string{MIT, APACHE, COPYRIGHT, LGPL, GPL, BSD3, EUPL, MsRl, MsPl}
 
-func main() {
-	var param = ""
-	//for _, arg := range os.Args{
-	//	fmt.Println(arg)
-	//}
-	if len(os.Args) < 2 {
-		fmt.Println("No file specify")
-		os.Exit(0)
-	} else {
-		param = os.Args[1]
-	}
-
-	suffix := strings.ToUpper(filepath.Ext(param))
-	//fmt.Println(suffix)
-
-	if suffix == ".ZIP" || suffix == ".JAR" { //if file type is .zip, make tmp dir
-		if _, err := os.ReadDir(ProjectTmp); err != nil {
-			if err := os.MkdirAll(ProjectTmp, os.ModePerm); err != nil {
-				log.Fatalln(err)
-			}
-		}
-
-		result := make(map[string]interface{})
-		external := make([]map[string]interface{}, 0)
-		local := make([]map[string]interface{}, 0)
-
-		zipDeCompress(param, ProjectTmp)
-
-		//result = shallowScan(ProjectTmp)
-		deepScan(ProjectTmp, &result)
-		//fmt.Println(result, "----------------------------------")
-		re1 := regexp.MustCompile(".*\\.[jarJAR]{3}")
-		for k, v := range result {
-			if strings.HasPrefix(k, "tmp") {
-				tk := re1.FindString(k)[len("tmp/project_tmp/"):]
-				external = append(external, map[string]interface{}{tk: v})
-			} else {
-				local = append(local, map[string]interface{}{k[len("project_tmp/"):]: v})
-			}
-		}
-
-		t := map[string]interface{}{"external": external, "local": local}
-
-		marshal, err := json.Marshal(t)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		fmt.Printf("Scan result: %v\n", string(marshal))
-		fmt.Println("all external modules: ", findAllExternalModule(external))
-		fmt.Println("all local modules: ", findAllLocalModule(local))
-		dependency, _ := json.Marshal(dependencyAnalyze(findAllExternalModule(external), local))
-		fmt.Println("dependency result: ", string(dependency))
-
-		m, d := PomScan("./pom.xml")
-		fmt.Println(m, "++++++++++", d)
-
-		defer os.RemoveAll(ProjectTmp)
-		defer os.RemoveAll(DIR)
-	} else if suffix == "" || suffix == ".TXT" || suffix == ".LICENSE" {
-		fmt.Println(param, scan(param))
-	} else {
-		fmt.Println("Not support file")
-		os.Exit(0)
-	}
-}
-
-func zipDeCompress(fileName string, destDir string) {
-	zipReader, err := zip.OpenReader(fileName)
+func zipDecompress(filePath string, destDir string) {
+	// 打开压缩文件
+	zipReader, err := zip.OpenReader(filePath)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
-	defer zipReader.Close()
+	defer func() {
+		if err = zipReader.Close(); err != nil {
+			panic(err)
+		}
+	}()
+	// 扫描所有文件和文件夹
 	for _, f := range zipReader.File {
+		// 顺序似乎总是先文件夹，后其中的文件，但我不确定
 		fPath := filepath.Join(destDir, f.Name)
 		if f.FileInfo().IsDir() {
-			os.MkdirAll(fPath, os.ModePerm)
-		} else {
-			if err = os.MkdirAll(filepath.Dir(fPath), os.ModePerm); err != nil {
-				log.Fatalln(err)
-			}
+			// 不创建空文件夹
+			continue
+		}
+		// 创建对应的外部文件所在目录
+		if err = os.MkdirAll(filepath.Dir(fPath), os.ModePerm); err != nil {
+			panic(err)
+		}
+		// 将压缩包中文件复制到外部指定位置
+		func() {
 			inFile, err := f.Open()
 			if err != nil {
-				log.Fatalln(err)
+				panic(err)
 			}
-			defer inFile.Close()
+			defer func() {
+				if err = inFile.Close(); err != nil {
+					panic(err)
+				}
+			}()
+
 			outFile, err := os.OpenFile(fPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 			if err != nil {
-				log.Fatalln(err)
+				panic(err)
 			}
-			defer outFile.Close()
+			defer func() {
+				if err := outFile.Close(); err != nil {
+					panic(err)
+				}
+			}()
+
 			_, err = io.Copy(outFile, inFile)
 			if err != nil {
-				log.Fatalln(err)
+				panic(err)
 			}
-		}
+			// 函数结束时关闭Close()
+		}()
 	}
 }
 
@@ -135,7 +90,7 @@ func ScanFile(fileName string) string {
 	return scan(fileName)
 }
 
-func ScanPackage(zipFileName string) map[string][]map[string]string {
+func ScanPackage(zipFilePath string) map[string][]map[string]string {
 	// 目录已存在返回nil
 	if err := os.MkdirAll(ProjectTmp, os.ModePerm); err != nil {
 		logrus.Panic(err)
@@ -143,10 +98,10 @@ func ScanPackage(zipFileName string) map[string][]map[string]string {
 	}
 	defer os.RemoveAll(ProjectTmp)
 
-	result := make(map[string]interface{})
+	result := make(map[string]string)
 	//result = shallowScan(ProjectTmp)
-	zipDeCompress(zipFileName, ProjectTmp)
-	deepScan(ProjectTmp, &result) // TODO 明明知道类型都是string，为什么interface{}不明确成string ?
+	zipDecompress(zipFilePath, ProjectTmp)
+	deepScan(ProjectTmp, &result)
 	defer os.RemoveAll(DIR)
 
 	logrus.Debug("result ", result)
@@ -158,9 +113,9 @@ func ScanPackage(zipFileName string) map[string][]map[string]string {
 	for k, v := range result {
 		if strings.HasPrefix(k, "tmp") {
 			tk := re1.FindString(k)[len("tmp/project_tmp/"):]
-			external = append(external, map[string]string{tk: v.(string)})
+			external = append(external, map[string]string{tk: v})
 		} else {
-			local = append(local, map[string]string{k[len("project_tmp/"):]: v.(string)})
+			local = append(local, map[string]string{k[len("project_tmp/"):]: v})
 		}
 	}
 
@@ -169,71 +124,87 @@ func ScanPackage(zipFileName string) map[string][]map[string]string {
 	return t
 }
 
+// 扫描证书文本文件内容
 func scan(fileName string) string {
 	file, err := os.Open(fileName)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-			fmt.Println(err.Error())
+	defer func() {
+		if err = file.Close(); err != nil {
+			panic(err)
 		}
-	}(file)
+	}()
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
 		line = strings.Trim(line, " ")
-		lineText := strings.ToUpper(line)
+		lineUpper := strings.ToUpper(line)
 		for _, license := range licenses {
-			if strings.Contains(lineText, license) {
-				if strings.EqualFold(license, APACHE) || strings.EqualFold(license, LGPL) ||
-					strings.EqualFold(license, GPL) || strings.EqualFold(license, EUPL) {
-					scanner.Scan()
-					version := scanner.Text()
-					for strings.TrimSpace(version) == "" {
-						scanner.Scan()
-						version = scanner.Text()
-					}
-					version = strings.TrimLeft(version, " ")
-					version = strings.Split(version, ",")[0]
-					//fmt.Println(license, "-------------", version)
-					return license + " " + version
-				} else {
-					//fmt.Println(license)
-					return license
-				}
+			if !strings.Contains(lineUpper, license) {
+				// 此行不含此证书
+				continue
 			}
+			if !(strings.EqualFold(license, APACHE) || strings.EqualFold(license, LGPL) ||
+				strings.EqualFold(license, GPL) || strings.EqualFold(license, EUPL)) {
+				// 证书不涉及版本号
+				return license
+			}
+			// 版本号形如"  Version 3, 29 June 2007"
+			scanner.Scan()
+			version := scanner.Text()
+			for strings.TrimSpace(version) == "" {
+				scanner.Scan()
+				version = scanner.Text()
+			}
+			version = strings.TrimLeft(version, " ")
+			version = strings.Split(version, ",")[0]
+			return license + " " + version
 		}
 	}
 	return "other license"
 }
 
-func deepScan(filePath string, result *map[string]interface{}) {
-	if info, err := os.Stat(filePath); err == nil {
-		if !info.IsDir() || strings.EqualFold(info.Name(), "out") {
-			name := strings.Split(strings.ToUpper(info.Name()), ".")
-			if name[0] == "LICENSE" || name[0] == "COPYING" || name[len(name)-1] == "LICENSE" {
-				(*result)[filePath] = scan(filePath)
-			} else if strings.EqualFold(name[len(name)-1], "jar") { // judge equal with case-insensitivity
-				tmp := filepath.Join(DIR, filePath)
-				os.MkdirAll(tmp, os.ModePerm)
-				zipDeCompress(filePath, tmp)
-				deepScan(tmp, result)
-				//defer os.RemoveAll(tmp)
+// 递归搜索所有目录的证书文件
+func deepScan(filePath string, result *map[string]string) {
+	info, err := os.Stat(filePath)
+	if err != nil {
+		panic(err)
+	}
+	// 跳过out目录
+	if strings.EqualFold(info.Name(), "out") {
+		return
+	}
+	// 对于目录，进入目录搜索
+	if info.IsDir() {
+		f, _ := os.Open(filePath)
+		defer func() {
+			if err = f.Close(); err != nil {
+				panic(err)
 			}
-			return
-		} else {
-			//fmt.Println(filePath)
-			f, _ := os.Open(filePath)
-			defer f.Close()
-			names, _ := f.Readdirnames(0)
-			for _, name := range names {
-				newPath := filepath.Join(filePath, name)
-				deepScan(newPath, result)
-			}
+		}()
+		// 获取所有文件夹名字
+		names, _ := f.Readdirnames(0)
+		for _, name := range names {
+			newPath := filepath.Join(filePath, name)
+			deepScan(newPath, result)
 		}
+		return
+	}
+	// 文件
+	name := strings.Split(strings.ToUpper(info.Name()), ".")
+	// 文本证书文件
+	if name[0] == "LICENSE" || name[0] == "COPYING" || name[len(name)-1] == "LICENSE" {
+		(*result)[filePath] = scan(filePath)
+		return
+	}
+	// jar包
+	if strings.EqualFold(name[len(name)-1], "jar") { // judge equal with case-insensitivity
+		tmp := filepath.Join(DIR, filePath)
+		os.MkdirAll(tmp, os.ModePerm)
+		zipDecompress(filePath, tmp)
+		deepScan(tmp, result)
 	}
 }
 
