@@ -32,6 +32,16 @@ const (
 
 var licenses = []string{MIT, APACHE, COPYRIGHT, LGPL, GPL, BSD3, EUPL, MsRl, MsPl}
 
+type PathLicense struct {
+	Path    string
+	License string
+}
+
+type AllPathLicense struct {
+	Local    []PathLicense
+	External []PathLicense
+}
+
 func zipDecompress(filePath string, destDir string) {
 	// 打开压缩文件
 	zipReader, err := zip.OpenReader(filePath)
@@ -86,11 +96,8 @@ func zipDecompress(filePath string, destDir string) {
 	}
 }
 
-func ScanFile(fileName string) string {
-	return scan(fileName)
-}
-
-func ScanPackage(zipFilePath string) map[string][]map[string]string {
+// ScanPackage 解压并扫描整个zip或jar包
+func ScanPackage(zipFilePath string) AllPathLicense {
 	// 目录已存在返回nil
 	if err := os.MkdirAll(ProjectTmp, os.ModePerm); err != nil {
 		logrus.Panic(err)
@@ -98,34 +105,21 @@ func ScanPackage(zipFilePath string) map[string][]map[string]string {
 	}
 	defer os.RemoveAll(ProjectTmp)
 
-	result := make(map[string]string)
-	//result = shallowScan(ProjectTmp)
 	zipDecompress(zipFilePath, ProjectTmp)
-	deepScan(ProjectTmp, &result)
+
+	local := make([]PathLicense, 0)
+	external := make([]PathLicense, 0)
+	deepScan(ProjectTmp, "", true, &local, &external)
 	defer os.RemoveAll(DIR)
 
-	logrus.Debug("result ", result)
+	logrus.Debug("local ", local)
+	logrus.Debug("external ", external)
 
-	external := make([]map[string]string, 0)
-	local := make([]map[string]string, 0)
-	// 以不论大小写jar为扩展名
-	re1 := regexp.MustCompile(".*\\.[jJ][aA][rR]")
-	for k, v := range result {
-		if strings.HasPrefix(k, "tmp") {
-			tk := re1.FindString(k)[len("tmp/project_tmp/"):]
-			external = append(external, map[string]string{tk: v})
-		} else {
-			local = append(local, map[string]string{k[len("project_tmp/"):]: v})
-		}
-	}
-
-	t := map[string][]map[string]string{"external": external, "local": local}
-
-	return t
+	return AllPathLicense{Local: local, External: external}
 }
 
-// 扫描证书文本文件内容
-func scan(fileName string) string {
+// ScanFile 扫描证书文本文件内容
+func ScanFile(fileName string) string {
 	file, err := os.Open(fileName)
 	if err != nil {
 		panic(err)
@@ -167,8 +161,10 @@ func scan(fileName string) string {
 }
 
 // 递归搜索所有目录的证书文件
-func deepScan(filePath string, result *map[string]string) {
-	info, err := os.Stat(filePath)
+// local: real path and license
+// external: jar path and license
+func deepScan(realFilePath, resultPath string, isLocal bool, local, external *[]PathLicense) {
+	info, err := os.Stat(realFilePath)
 	if err != nil {
 		panic(err)
 	}
@@ -178,7 +174,7 @@ func deepScan(filePath string, result *map[string]string) {
 	}
 	// 对于目录，进入目录搜索
 	if info.IsDir() {
-		f, _ := os.Open(filePath)
+		f, _ := os.Open(realFilePath)
 		defer func() {
 			if err = f.Close(); err != nil {
 				panic(err)
@@ -187,8 +183,12 @@ func deepScan(filePath string, result *map[string]string) {
 		// 获取所有文件夹名字
 		names, _ := f.Readdirnames(0)
 		for _, name := range names {
-			newPath := filepath.Join(filePath, name)
-			deepScan(newPath, result)
+			newRealPath := filepath.Join(realFilePath, name)
+			newResultPath := filepath.Join(resultPath, name)
+			if !isLocal {
+				newResultPath = resultPath
+			}
+			deepScan(newRealPath, newResultPath, isLocal, local, external)
 		}
 		return
 	}
@@ -196,15 +196,21 @@ func deepScan(filePath string, result *map[string]string) {
 	name := strings.Split(strings.ToUpper(info.Name()), ".")
 	// 文本证书文件
 	if name[0] == "LICENSE" || name[0] == "COPYING" || name[len(name)-1] == "LICENSE" {
-		(*result)[filePath] = scan(filePath)
+		license := ScanFile(realFilePath)
+		if isLocal {
+			*local = append(*local, PathLicense{Path: resultPath, License: license})
+		} else {
+			*external = append(*external, PathLicense{Path: resultPath, License: license})
+		}
 		return
 	}
 	// jar包
 	if strings.EqualFold(name[len(name)-1], "jar") { // judge equal with case-insensitivity
-		tmp := filepath.Join(DIR, filePath)
-		os.MkdirAll(tmp, os.ModePerm)
-		zipDecompress(filePath, tmp)
-		deepScan(tmp, result)
+		newRealPath := filepath.Join(DIR, realFilePath)
+		newResultPath := resultPath
+		os.MkdirAll(newRealPath, os.ModePerm)
+		zipDecompress(realFilePath, newRealPath)
+		deepScan(newRealPath, newResultPath, false, local, external)
 	}
 }
 

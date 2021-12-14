@@ -38,10 +38,30 @@ testProject 用于测试功能的java项目
 Scan result as follows:
 ```json
 {
-  "external":
-    [{"ScannerTest1/lib/DependedProject.jar":"GENERAL PUBLIC LICENSE Version 2"}],
-  "local":
-    [{"ScannerTest1/License.txt":"GENERAL PUBLIC LICENSE Version 3"}]
+  "LocalPathLicenses": [
+    {
+      "Path": "ScannerTest5\\License.txt",
+      "License": "GENERAL PUBLIC LICENSE Version 3"
+    },
+    {
+      "Path": "ScannerTest5\\Module1\\LICENSE",
+      "License": "LESSER GENERAL PUBLIC LICENSE Version 2.1"
+    },
+    {
+      "Path": "ScannerTest5\\Module2\\LICENSE",
+      "License": "LESSER GENERAL PUBLIC LICENSE Version 2.1"
+    }
+  ],
+  "ExternalPathLicenses": [
+    {
+      "Path": "ScannerTest5\\Module1\\lib\\DependedProject3.jar",
+      "License": "MICROSOFT RECIPROCAL LICENSE"
+    },
+    {
+      "Path": "ScannerTest5\\Module2\\antlib\\DependedProject2.jar",
+      "License": "EUROPEAN UNION PUBLIC LICENCE V. 1.1"
+    }
+  ]
 }
 ```
 
