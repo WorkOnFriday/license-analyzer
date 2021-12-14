@@ -5,16 +5,16 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 )
-
-var licenses []string
 
 const (
 	GPL       = "GENERAL PUBLIC LICENSE"
@@ -31,6 +31,8 @@ const (
 	ProjectTmp = "./project_tmp"
 )
 
+var licenses = []string{MIT, APACHE, COPYRIGHT, LGPL, GPL, BSD3, EUPL, MsRl, MsPl}
+
 func main() {
 	var param = ""
 	//for _, arg := range os.Args{
@@ -42,7 +44,6 @@ func main() {
 	} else {
 		param = os.Args[1]
 	}
-	licenses = append(licenses, MIT, APACHE, COPYRIGHT, LGPL, GPL, BSD3, EUPL, MsRl, MsPl)
 
 	suffix := strings.ToUpper(filepath.Ext(param))
 	//fmt.Println(suffix)
@@ -128,6 +129,44 @@ func zipDeCompress(fileName string, destDir string) {
 			}
 		}
 	}
+}
+
+func ScanFile(fileName string) string {
+	return scan(fileName)
+}
+
+func ScanPackage(zipFileName string) map[string][]map[string]string {
+	// 目录已存在返回nil
+	if err := os.MkdirAll(ProjectTmp, os.ModePerm); err != nil {
+		logrus.Panic(err)
+		panic(err)
+	}
+	defer os.RemoveAll(ProjectTmp)
+
+	result := make(map[string]interface{})
+	//result = shallowScan(ProjectTmp)
+	zipDeCompress(zipFileName, ProjectTmp)
+	deepScan(ProjectTmp, &result) // TODO 明明知道类型都是string，为什么interface{}不明确成string ?
+	defer os.RemoveAll(DIR)
+
+	logrus.Debug("result ", result)
+
+	external := make([]map[string]string, 0)
+	local := make([]map[string]string, 0)
+	// 以不论大小写jar为扩展名
+	re1 := regexp.MustCompile(".*\\.[jJ][aA][rR]")
+	for k, v := range result {
+		if strings.HasPrefix(k, "tmp") {
+			tk := re1.FindString(k)[len("tmp/project_tmp/"):]
+			external = append(external, map[string]string{tk: v.(string)})
+		} else {
+			local = append(local, map[string]string{k[len("project_tmp/"):]: v.(string)})
+		}
+	}
+
+	t := map[string][]map[string]string{"external": external, "local": local}
+
+	return t
 }
 
 func scan(fileName string) string {
@@ -346,7 +385,11 @@ func findAllExternalModule(tmp []map[string]interface{}) map[string][]string {
 				}
 				for {
 					if len(f) != 1 || (len(f) == 1 && !f[0].IsDir()) {
-						result[key] = append(arr, strings.Split(tmpDir, ".jar/")[1])
+						splitToken := ".jar\\"
+						if runtime.GOOS == "linux" {
+							splitToken = ".jar/"
+						}
+						result[key] = append(arr, strings.Split(tmpDir, splitToken)[1])
 						break
 					}
 					tmpDir = filepath.Join(tmpDir, f[0].Name())
