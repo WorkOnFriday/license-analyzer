@@ -3,6 +3,7 @@ package scanner
 import (
 	"archive/zip"
 	"bufio"
+	"encoding/xml"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"io"
@@ -440,38 +441,59 @@ func removeModuleSuffix(module string) string {
 	return module[:suffix[0]]
 }
 
-// PomScan */
 /*
-@return modules []string
-@return dependencies map[string]string,
-dependencies format is {groupId/artifactId: version} and the default version is latests
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="...">
+  <modules>
+    <module>zstd-proxy</module>
+  </modules>
+  <dependencies>
+    <dependency>
+      <groupId>org.neo4j</groupId>
+      <artifactId>neo4j-kernel</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+    </dependency>
+  </dependencies>
+</project>
 */
-func PomScan(fileName string) ([]string, map[string]string) {
+
+type XMLModules struct {
+	Modules []string `xml:"module"`
+}
+
+type XMLDependency struct {
+	GroupID    string `xml:"groupId"`
+	ArtifactID string `xml:"artifactId"`
+	Version    string `xml:"version"`
+}
+
+type XMLDependencies struct {
+	Dependencies []XMLDependency `xml:"dependency"`
+}
+
+type XMLProject struct {
+	//XMLName      xml.Name        `xml:"project"`
+	Modules      XMLModules      `xml:"modules"`
+	Dependencies XMLDependencies `xml:"dependencies"`
+}
+
+func PomScan(fileName string) (project XMLProject) {
 	b, err := ioutil.ReadFile(fileName) // just pass the file name
 	if err != nil {
-		fmt.Print(err)
+		panic(err)
 	}
-	file := string(b)
-	var modules []string
-	dependencies := make(map[string]string)
-	re := regexp.MustCompile("<dependency>.*?</dependency>")
-	re1 := regexp.MustCompile("<groupId>.*</")
-	re2 := regexp.MustCompile(">.*?<")
-	re3 := regexp.MustCompile("<module>.*?</module>")
-	t := re.FindAllString(strings.ReplaceAll(file, "\n", ""), -1)
-	for _, s := range t {
-		tArr := re2.FindAllString(re1.FindString(s), -1)
-		k := strings.Trim(tArr[0], "<> ") + "/" + strings.Trim(tArr[2], "<> ")
-		v := "latest"
-		fmt.Println(k, "--------")
-		if len(tArr) == 6 {
-			v = strings.Trim(tArr[4], "<> ")
+	if err = xml.Unmarshal(b, &project); err != nil {
+		panic(err)
+	}
+	// 设置默认值（暂时没找到更好的做法）
+	for i := range project.Dependencies.Dependencies {
+		if project.Dependencies.Dependencies[i].Version == "" {
+			project.Dependencies.Dependencies[i].Version = "latest"
 		}
-		dependencies[k] = v
 	}
-	for _, v := range re3.FindAllString(file, -1) {
-		modules = append(modules, strings.Trim(re2.FindString(v), "<>"))
-	}
-
-	return modules, dependencies
+	return
 }

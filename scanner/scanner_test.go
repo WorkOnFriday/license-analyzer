@@ -47,8 +47,8 @@ func TestCase(t *testing.T) {
 				dependency, _ := json.Marshal(dependencyAnalyze(findAllExternalModule(external), local))
 				fmt.Println("dependency result: ", string(dependency))
 
-				m, d := PomScan("./pom.xml")
-				fmt.Println(m, "++++++++++", d)
+				p := PomScan("./pom.xml")
+				fmt.Println(p)
 
 			} else if suffix == "" || suffix == ".TXT" || suffix == ".LICENSE" {
 				fmt.Println(param, ScanFile(param))
@@ -56,6 +56,17 @@ func TestCase(t *testing.T) {
 				fmt.Println("Not support file")
 				os.Exit(0)
 			}
+		})
+	})
+}
+
+func TestPomScan(t *testing.T) {
+	t.Run("test", func(t *testing.T) {
+		convey.Convey("Test1", t, func() {
+			project := PomScan("D:\\gopath\\src\\license-analyzer\\testFile\\pomDependency.xml")
+			fmt.Printf("%+v\n", project)
+			project2 := PomScan("D:\\gopath\\src\\license-analyzer\\testFile\\pomModule.xml")
+			fmt.Printf("%+v\n", project2)
 		})
 	})
 }
