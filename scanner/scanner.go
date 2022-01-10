@@ -505,10 +505,16 @@ type XMLProject struct {
 }
 
 func PomScan(fileName string) (project XMLProject) {
+	// 支持文件为空
+	if _, err := os.Stat(fileName); os.IsNotExist(err) {
+		return XMLProject{}
+	}
+	// 打开文件
 	b, err := ioutil.ReadFile(fileName) // just pass the file name
 	if err != nil {
 		panic(err)
 	}
+	// 解析XML
 	if err = xml.Unmarshal(b, &project); err != nil {
 		panic(err)
 	}

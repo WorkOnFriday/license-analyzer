@@ -14,7 +14,7 @@ import (
 func TestCase(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		convey.Convey("Test1", t, func() {
-			var param = "D:\\gopath\\src\\license-analyzer\\testProject\\ScannerTest4.zip"
+			var param = "D:\\gopath\\src\\license-analyzer\\testProject\\ScannerTest6.zip"
 
 			suffix := strings.ToUpper(filepath.Ext(param))
 
@@ -47,8 +47,8 @@ func TestCase(t *testing.T) {
 				dependency, _ := json.Marshal(dependencyAnalyze(findAllExternalModule(external), local))
 				fmt.Println("dependency result: ", string(dependency))
 
-				p := PomScan("./pom.xml")
-				fmt.Println(p)
+				p := PomScan(filepath.Join(ProjectTmp, "ScannerTest6\\pom.xml"))
+				fmt.Printf("pom result: %+v\n", p)
 
 			} else if suffix == "" || suffix == ".TXT" || suffix == ".LICENSE" {
 				fmt.Println(param, ScanFile(param))
