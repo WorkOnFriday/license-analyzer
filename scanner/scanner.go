@@ -249,7 +249,7 @@ type AllModuleDependency struct {
 	Modules    []ModuleDependency
 }
 
-func dependencyAnalyze(externalModules map[string][]string, local []PathLicense) (all AllModuleDependency) {
+func dependencyAnalyze(externalModules []JarPackages, local []PathLicense) (all AllModuleDependency) {
 	mainModule := ""
 	for _, nowPathLicense := range local {
 		logrus.Debug("path: ", nowPathLicense.Path, " license: ", nowPathLicense.License)
@@ -275,10 +275,10 @@ func dependencyAnalyze(externalModules map[string][]string, local []PathLicense)
 			if strings.HasPrefix(module, "java.") {
 				continue
 			}
-			for externalPath, external := range externalModules {
-				for _, v := range external {
-					if moduleEqualInDepthLevel(3, strings.ReplaceAll(v, "/", "."), module) {
-						md.Dependency = append(md.Dependency, externalPath)
+			for _, jarPackages := range externalModules {
+				for _, pkg := range jarPackages.Package {
+					if moduleEqualInDepthLevel(3, strings.ReplaceAll(pkg, "/", "."), module) {
+						md.Dependency = append(md.Dependency, jarPackages.JarPath)
 						break // 无需重复
 					}
 				}
@@ -349,15 +349,20 @@ func javaScan(filePath string, result *[]string) {
 	return
 }
 
+type JarPackages struct {
+	JarPath string
+	Package []string
+}
+
 /**
 find all external modules from array of module path
 return package name in jar
 */
-func findAllExternalModule(external []PathLicense) map[string][]string {
-	result := make(map[string][]string)
-	arr := make([]string, 0)
+func findAllExternalModule(external []PathLicense) (result []JarPackages) {
 	for _, now := range external {
+		var jarPackages JarPackages
 		jarPath := now.Path
+		jarPackages.JarPath = jarPath
 		filePath := filepath.Join(DIR, ProjectTmp, jarPath)
 		/* 应该不存在此情况
 		if !strings.HasSuffix(jarPath, ".jar") {
@@ -391,7 +396,8 @@ func findAllExternalModule(external []PathLicense) map[string][]string {
 			if runtime.GOOS == "linux" {
 				splitToken = ".jar/"
 			}
-			result[jarPath] = append(arr, strings.Split(fileFullPath, splitToken)[1])
+			jarPackages.Package = append(jarPackages.Package, strings.Split(fileFullPath, splitToken)[1])
+			result = append(result, jarPackages)
 		}
 	}
 	return result
