@@ -17,7 +17,6 @@ func SetRouterAndRun() {
 
 	router.GET("/helloWorld", controller.HelloWorld)
 	router.GET("/check", controller.LicenseCheck)
-	router.POST("/license/file", controller.ScannerLicenseFile)
 	router.POST("/license/package", controller.ScannerPackage)
 	logrus.Debugln("set router")
 

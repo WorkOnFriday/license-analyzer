@@ -10,9 +10,9 @@ import (
 	"testing"
 )
 
-func TestCase(t *testing.T) {
+func TestScanPackage(t *testing.T) {
 
-	t.Run("test4", func(t *testing.T) {
+	t.Run("TestScanPackage_ScannerTest4", func(t *testing.T) {
 
 		convey.Convey("Test4", t, func() {
 			var param = "D:\\gopath\\src\\license-analyzer\\testProject\\ScannerTest4.zip"
@@ -87,16 +87,11 @@ func TestCase(t *testing.T) {
 				fmt.Printf("pom result: %+v\n", p)
 				convey.So(fmt.Sprintf("%+v", p), convey.ShouldEqual,
 					fmt.Sprintf("%+v", expectP))
-			} else if suffix == "" || suffix == ".TXT" || suffix == ".LICENSE" {
-				fmt.Println(param, ScanFile(param))
-			} else {
-				fmt.Println("Not support file")
-				os.Exit(0)
 			}
 		})
 	})
 
-	t.Run("test6", func(t *testing.T) {
+	t.Run("TestScanPackage_ScannerTest6", func(t *testing.T) {
 		convey.Convey("Test6", t, func() {
 			var param = "D:\\gopath\\src\\license-analyzer\\testProject\\ScannerTest6.zip"
 
@@ -162,11 +157,6 @@ func TestCase(t *testing.T) {
 				fmt.Printf("pom result: %+v\n", p)
 				convey.So(fmt.Sprintf("%+v", p), convey.ShouldEqual,
 					fmt.Sprintf("%+v", expectP))
-			} else if suffix == "" || suffix == ".TXT" || suffix == ".LICENSE" {
-				fmt.Println(param, ScanFile(param))
-			} else {
-				fmt.Println("Not support file")
-				os.Exit(0)
 			}
 		})
 
@@ -180,6 +170,17 @@ func TestPomScan(t *testing.T) {
 			fmt.Printf("%+v\n", project)
 			project2 := PomScan("D:\\gopath\\src\\license-analyzer\\testFile\\pomModule.xml")
 			fmt.Printf("%+v\n", project2)
+		})
+	})
+}
+
+func TestScanFile(t *testing.T) {
+	t.Run("TestScanFile", func(t *testing.T) {
+		convey.Convey("Test1", t, func() {
+			filePath := "D:\\gopath\\src\\license-analyzer\\testFile\\EUPL.txt"
+			license := ScanFile(filePath)
+			fmt.Printf("license %+v\n", license)
+			convey.So(license, convey.ShouldEqual, "EUROPEAN UNION PUBLIC LICENCE V. 1.1")
 		})
 	})
 }

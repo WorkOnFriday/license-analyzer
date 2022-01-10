@@ -26,40 +26,6 @@ func LicenseCheck(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, scanner.Check(l1, l2))
 }
 
-func ScannerLicenseFile(c *gin.Context) {
-	// 用户通过表单项设置服务端文件保存路径
-	dst := c.PostForm("dst")
-	logrus.Debug("dst", dst)
-	// 获取表单中的文件
-	file, err := c.FormFile("file")
-	if err != nil {
-		logrus.Error("ScannerLicenseFile get form err: ", err.Error())
-		c.Status(http.StatusBadRequest)
-		return
-	}
-	logrus.Debug("file.Filename", file.Filename, "file.Size", file.Size)
-	// 服务端文件完整路径
-	fileFullPath := path.Join(dst, filepath.Base(file.Filename))
-	logrus.Debug("fileFullPath", fileFullPath)
-	// 创建文件保存路径 对于windows系统，/开头为从磁盘根目录，否则从项目根目录
-	if err = os.MkdirAll(dst, os.ModePerm); err != nil {
-		logrus.Error("ScannerLicenseFile create file directory err: ", dst, " ", err.Error())
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-	// 保存到磁盘
-	if err = c.SaveUploadedFile(file, fileFullPath); err != nil {
-		logrus.Error("ScannerLicenseFile upload file err: ", err.Error())
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-	// 扫描协议文件
-	result := scanner.ScanFile(fileFullPath)
-	// 返回结果
-	logrus.Debug(result)
-	c.String(http.StatusOK, result)
-}
-
 // ScannerPackage 扫描jar或zip项目包
 func ScannerPackage(c *gin.Context) {
 	// 用户通过表单项设置服务端文件保存路径
