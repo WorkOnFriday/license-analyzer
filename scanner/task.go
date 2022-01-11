@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"github.com/sirupsen/logrus"
+	"license-analyzer/util"
 	"os"
 	"path"
 	"path/filepath"
@@ -12,6 +13,11 @@ type Task struct {
 	ID       int
 	FullPath string
 }
+
+type PomLicense struct {
+	XMLDependency
+	License string
+}
 type TaskResult struct {
 	IsFinish          bool
 	ErrorMessage      string
@@ -20,7 +26,7 @@ type TaskResult struct {
 	AllExternalModule []JarPackages
 	AllLocalModule    []ModuleLicense
 	Dependency        AllModuleDependency
-	Pom               XMLProject
+	PomLicense        []PomLicense
 }
 
 var taskCounter chan int
@@ -95,6 +101,18 @@ func startTaskQueue() {
 			p := PomScan(pomFullPath)
 			logrus.Debugf("pom result: %+v", p)
 
+			// 抓取pom.xml外部依赖的许可证
+			errorMessage := ""
+			var pomLicenses []PomLicense
+			for _, d := range p.Dependencies.Dependencies {
+				result, err := util.FetchMvnPackageLicense(d.GroupID, d.ArtifactID, d.Version)
+				if err != nil {
+					errorMessage += err.Error()
+					continue
+				}
+				pomLicenses = append(pomLicenses, PomLicense{XMLDependency: d, License: result})
+			}
+			// 汇总结果
 			taskResultMap[task.ID] = TaskResult{
 				IsFinish:          true,
 				ErrorMessage:      "",
@@ -103,7 +121,7 @@ func startTaskQueue() {
 				AllExternalModule: allExternalModule,
 				AllLocalModule:    allLocalModule,
 				Dependency:        dependency,
-				Pom:               p,
+				PomLicense:        pomLicenses,
 			}
 		}
 	}()

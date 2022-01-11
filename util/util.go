@@ -6,6 +6,7 @@ package util
 
 import (
 	"context"
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/chromedp/chromedp"
 	"github.com/sirupsen/logrus"
@@ -85,4 +86,11 @@ func FetchDynamicHTMLItemInnerText(url string, selector string) (string, error) 
 		return "", err
 	}
 	return innerText, nil
+}
+
+func FetchMvnPackageLicense(GroupID, ArtifactID, Version string) (result string, err error) {
+	uri := fmt.Sprintf("https://mvnrepository.com/artifact/%s/%s/%s", GroupID, ArtifactID, Version)
+	const LicenseSelector = "#maincontent > table > tbody > tr:nth-child(1) > td > span"
+	result, err = FetchDynamicHTMLItemInnerText(uri, LicenseSelector)
+	return
 }
