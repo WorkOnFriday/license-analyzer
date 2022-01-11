@@ -6,6 +6,7 @@ import (
 	"license-analyzer/mysql"
 	"license-analyzer/redis"
 	"license-analyzer/router"
+	"license-analyzer/scanner"
 )
 
 func main() {
@@ -16,6 +17,8 @@ func main() {
 	// 设置数据库
 	mysql.SetMySQL()
 	redis.SetRedis()
+	// 运行任务处理队列
+	scanner.StartTaskSystem()
 	// 运行服务
 	router.SetRouterAndRun()
 }

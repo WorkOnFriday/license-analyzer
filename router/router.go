@@ -17,7 +17,10 @@ func SetRouterAndRun() {
 
 	router.GET("/helloWorld", controller.HelloWorld)
 	router.GET("/check", controller.LicenseCheck)
-	router.POST("/license/package", controller.ScannerPackage)
+
+	router.POST("/task", controller.SubmitScanTask)
+	router.GET("/task", controller.GetTaskResult)
+
 	logrus.Debugln("set router")
 
 	if err := router.Run("localhost:8080"); err != nil {
