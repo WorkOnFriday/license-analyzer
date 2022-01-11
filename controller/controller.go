@@ -19,16 +19,6 @@ import (
 
 const uploadPath = "upload"
 
-func HelloWorld(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, "HelloWorld")
-}
-
-func LicenseCheck(c *gin.Context) {
-	l1 := c.Query("l1")
-	l2 := c.Query("l2")
-	c.IndentedJSON(http.StatusOK, scanner.Check(l1, l2))
-}
-
 // SubmitScanTask 提交扫描jar或zip项目包的任务
 func SubmitScanTask(c *gin.Context) {
 	// 获取项目包文件
