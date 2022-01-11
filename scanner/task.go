@@ -3,7 +3,9 @@ package scanner
 import (
 	"github.com/sirupsen/logrus"
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
 )
 
 type Task struct {
@@ -11,8 +13,14 @@ type Task struct {
 	FullPath string
 }
 type TaskResult struct {
-	IsFinish     bool
-	ErrorMessage string
+	IsFinish          bool
+	ErrorMessage      string
+	Local             []PathLicense
+	External          []PathLicense
+	AllExternalModule []JarPackages
+	AllLocalModule    []ModuleLicense
+	Dependency        AllModuleDependency
+	Pom               XMLProject
 }
 
 var taskCounter chan int
@@ -39,11 +47,64 @@ func startTaskQueue() {
 	go func() {
 		select {
 		case task := <-taskQueue:
-			logrus.Debugf("startTaskQueue %+v", task)
-			taskResultMap[task.ID] = TaskResult{IsFinish: true, ErrorMessage: "test"}
-
 			// 删除任务文件夹，节省磁盘空间
-			os.RemoveAll(filepath.Dir(task.FullPath))
+			defer os.RemoveAll(filepath.Dir(task.FullPath))
+
+			logrus.Debugf("startTaskQueue %+v", task)
+
+			// 执行分析
+			external := make([]PathLicense, 0)
+			local := make([]PathLicense, 0)
+
+			// 创建解压到的临时文件夹
+			if err := os.MkdirAll(ProjectTmp, os.ModePerm); err != nil {
+				logrus.Fatalln(err)
+			}
+			// 删除解压到的文件夹
+			defer os.RemoveAll(ProjectTmp)
+
+			// 解压
+			zipDecompress(task.FullPath, ProjectTmp)
+
+			// 扫描 项目本身/jar包，获得许可证路径/包 和 许可证类型
+			deepScan(ProjectTmp, "", true, &local, &external)
+			// 删除jar包解压到的文件夹
+			defer os.RemoveAll(DIR)
+
+			logrus.Debugf("Scan result external: %+v", external)
+			logrus.Debugf("Scan result local: %+v", local)
+
+			// 获取jar包中的包名
+			allExternalModule := findAllExternalModule(external)
+			logrus.Debugf("all external modules: %+v", allExternalModule)
+
+			// 获取项目本身包名和许可证类型
+			allLocalModule := findAllLocalModule(local)
+			logrus.Debugf("all local modules: %+v", allLocalModule)
+
+			// 得到项目本身每个包对jar包的依赖
+			dependency := dependencyAnalyze(findAllExternalModule(external), local)
+			logrus.Debugf("dependency result: %+v", dependency)
+
+			// 得到pom.xml定义的外部依赖
+			packageFileName := filepath.Base(task.FullPath)
+			packageType := path.Ext(packageFileName)
+			packageName := strings.TrimSuffix(packageFileName, packageType)
+			pomFullPath := filepath.Join(ProjectTmp, packageName, "pom.xml")
+			logrus.Debugf("pom full path: %+v", pomFullPath)
+			p := PomScan(pomFullPath)
+			logrus.Debugf("pom result: %+v", p)
+
+			taskResultMap[task.ID] = TaskResult{
+				IsFinish:          true,
+				ErrorMessage:      "",
+				Local:             local,
+				External:          external,
+				AllExternalModule: allExternalModule,
+				AllLocalModule:    allLocalModule,
+				Dependency:        dependency,
+				Pom:               p,
+			}
 		}
 	}()
 }
