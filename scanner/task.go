@@ -50,7 +50,8 @@ func startTaskCounter() {
 
 func startTaskQueue() {
 	taskQueue = make(chan Task, channelBufferSize)
-	go func() {
+
+	runOneTaskInQueue := func() {
 		select {
 		case task := <-taskQueue:
 			// 删除任务文件夹，节省磁盘空间
@@ -123,6 +124,14 @@ func startTaskQueue() {
 				Dependency:        dependency,
 				PomLicense:        pomLicenses,
 			}
+		}
+	}
+
+	// 后台运行
+	go func() {
+		// 不断读取已提交的任务
+		for {
+			runOneTaskInQueue()
 		}
 	}()
 }
