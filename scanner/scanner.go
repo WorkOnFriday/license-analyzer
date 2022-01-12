@@ -412,13 +412,8 @@ func findAllLocalModule(local []PathLicense) (result []ModuleLicense) {
 	for _, nowPathLicense := range local {
 		path := nowPathLicense.Path
 		license := nowPathLicense.License
-		module := filepath.Base(filepath.Dir(path))
-		/*
-			应该不存在此情况
-			if strings.EqualFold(module, ".") {
-				module = filepath.Dir(path)
-			}
-		*/
+		// 项目模块的完整路径
+		module := filepath.Dir(path)
 		result = append(result, ModuleLicense{Module: module, License: license})
 	}
 	return
