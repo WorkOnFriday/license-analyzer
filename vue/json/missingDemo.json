@@ -1,14 +1,6 @@
 [
   {
     "missingPackage": "A.B",
-    "recommend": "lic1"
-  },
-  {
-    "missingPackage": "A.B",
-    "recommend": "lic1"
-  },
-  {
-    "missingPackage": "A.B",
-    "recommend": "lic1"
+    "recommends": ["lic1","lic2","lic3"]
   }
 ]

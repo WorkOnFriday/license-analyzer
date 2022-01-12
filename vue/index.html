@@ -15,27 +15,47 @@
     <link rel="stylesheet" href="css/self.css">
 
 </head>
-<body id="top" class="stickyfooter header-fixed">
 
-<div id="app">
+<body id="top" class="stickyfooter header-fixed"  style="background-color:#ffffff">
+<script src="js/cc.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/vue.js"></script>
+<script src="js/axios.min.js"></script>
+<script src="js/md5.js"></script>
+
+<div id="app" >
 
     <h1  style="text-align: center">{{showTitle}}</h1>
-    <dep_info :dep_dic="depDic"></dep_info>
-    <deps_conflict :deps_conflict_dic="depsConflictDic"></deps_conflict>
-    <proj_conflict :proj_conflict_dic="projConflictDic"></proj_conflict>
-    <missing_license :missing_dic="missingDic"></missing_license>
 
+    <upload_file></upload_file>
+    <inquire></inquire>
+
+    <div v-if="mode==2" >
+        <dep_info :dep_dic="depDic"></dep_info>
+        <deps_conflict :deps_conflict_dic="depsConflictDic"></deps_conflict>
+        <proj_conflict :proj_conflict_dic="projConflictDic"></proj_conflict>
+
+    </div>
+
+    <div v-if="mode==3">
+        <missing_license :missing_dic="missingDic"></missing_license>
+    </div>
+
+    <div v-if="mode==4">
+        <h4 >检测未完成，请稍后重新查询</h4>
+    </div>
 
 </div>
 
 
 </body>
 </html>
-<script src="js/vue.js"></script>
-<script src="js/axios.min.js"></script>
+
+
+
 
 <script>
     // axios实例
+
     const instance = axios.create({
         baseURL: "http://localhost:63342/vueproject/vuetest1/",
         timeout: 5000,
@@ -44,7 +64,7 @@
     //依赖信息组件
     const dep_info = {
         template: `
-          <div class="stickyfooter header-fixed">
+          <div class="stickyfooter header-fixed" >
           <div class="content">
             <main>
               <section class="pricing-area pt90 pb30">
@@ -60,7 +80,7 @@
                   <div class="row">
                     <div>
 
-                      <div v-for=" (dep,index) in dep_dic" class="col-md-4">
+                      <div v-for=" (dep,index) in dep_dic" class="col-md-4  card">
 
                         <div class="pricing-table mb30">
                           <div class="price-header">
@@ -122,8 +142,8 @@
                           <div class="price-body text-left  test test-1 " >
 <!--                            <div class="scrollbar"></div>-->
                             <ul>
-                              <li><span style="display:inline-block;font-weight: bold;width: 8em; ">{{conflict.pack}}</span>: {{conflict.licenseOne}}</li>
-                              <li><span style="display:inline-block;font-weight: bold;width: 8em;">{{conflict.dependency}}</span>: {{conflict.licenseTwo}}</li>
+                              <li><span style="display:inline-block;font-weight: bold;width: 10em; ">{{conflict.pack}}</span>: {{conflict.licenseOne}}</li>
+                              <li><span style="display:inline-block;font-weight: bold;width: 10em;">{{conflict.dependency}}</span>: {{conflict.licenseTwo}}</li>
                               <li><span style="font-weight: bold">冲突信息：</span>{{conflict.conflictInfo}}</li>
                             </ul>
 
@@ -177,8 +197,8 @@
 
                           <div class="price-body text-left  test test-1 " >
                             <ul>
-                              <li><span style="display:inline-block;font-weight: bold;width: 8em; ">{{conflict.packOne}}</span>: {{conflict.licenseOne}}</li>
-                              <li><span style="display:inline-block;font-weight: bold;width: 8em;">{{conflict.packTwo}}</span>: {{conflict.licenseTwo}}</li>
+                              <li><span style="display:inline-block;font-weight: bold;width: 10em; ">{{conflict.packOne}}</span>: {{conflict.licenseOne}}</li>
+                              <li><span style="display:inline-block;font-weight: bold;width: 10em;">{{conflict.packTwo}}</span>: {{conflict.licenseTwo}}</li>
                               <li><span style="font-weight: bold">冲突信息：</span>{{conflict.conflictInfo}}</li>
                             </ul>
 
@@ -213,23 +233,23 @@
                   <div class="row">
                     <div class="col-xs-12">
                       <div class="area-heading text-center">
-                        <h2 class="area-title">缺失</h2>
+                        <h2 class="area-title">该项目缺少许可证</h2>
                       </div>
                     </div>
                   </div>
                   <div class="row">
                     <div>
 
-                      <div v-for=" (missing,index) in missing_dic" class="col-md-4">
+                      <div  class="col-md-12">
 
                         <div class="pricing-table mb30 " style="height: 400px;overflow: hidden !important;">
-                          <h4 >缺失[{{index+1}}]</h4>
+                          <h4 >推荐许可证</h4>
                           <hr>
 
                           <div class="price-body text-left  test test-1 " >
                             <ul>
-                              <li><span style="font-weight: bold;">缺失包名:</span>: {{missing.missingPackage}}</li>
-                              <li><span style="font-weight: bold">推荐license：</span>{{missing.recommend}}</li>
+                              <li ><span style="font-weight: bold;">缺失项目名:</span>: {{missing_dic[0].missingPackage}}</li>
+                              <li v-for="(recommend,idx) in missing_dic[0].recommends"><span style="font-weight: bold">推荐许可证{{idx+1}}:</span>{{recommend}}</li>
                             </ul>
 
                           </div>
@@ -251,6 +271,139 @@
         `,
         props: ['missing_dic']
     }
+
+    //上传文件组件
+    const upload_file={
+        template:`
+        <div class="big-classic-load-button text-center">
+        <p class="end">提示信息</p>
+<!--        选择文件按钮        -->
+        <a type="button" id="classic-load-button-link" href="#" data-load="1" @click="click_submit">选择文件</a>
+
+
+        <br>
+        {{filename}}
+        <br>
+        <button  @click="upload" class="btn btn-lg btn-black ">上传</button>
+        <br>
+        <span v-if="is_upload">正在上传文件，请稍后...</span>
+        <br>
+        <span v-if="hash.length>=1"><span style="color: #fc011a">请记住你的查询号：</span>{{hash}}</span>
+        <!--      隐藏的上传文件组件-->
+        <input type="file"
+               id="id_upload" name="avatar"
+               accept=".zip"
+               style="visibility: hidden"
+               v-on:change="get_filename()">
+
+        <hr>
+    </div>
+        `,
+        data(){
+            return {
+                filename:' ',
+                hash:'',
+                is_upload:false
+            }
+        },
+        methods:{
+
+            upload(){
+
+                let inputElement = document.getElementById("id_upload");
+                this.is_upload=true;
+                let file = inputElement.files[0];
+                console.log(file);
+                if (!file) {
+                    alert("请选择文件");
+                    return;
+                }
+                let size=file.size;
+                console.log(size);
+
+                // this.hash=hex_md5(file);
+                // console.log(this.hash);
+                // alert('请记住查询号码：',this.hash);
+                let param = new FormData(); // 创建form对象
+                param.append("file", file); // 通过append向form对象添加数据
+                // param.append("chunk", "别的数据"); // 添加form表单中其他数据
+
+                console.log(param.get("file")); // FormData私有类对象，访问不到，可以通过get判断值是否传进去
+
+                let config = {
+                    headers: { "Content-Type": "multipart/form-data" }
+                };
+
+                //post上传文件和获取返回值
+                axios.post("./", param, config,maxPostSize=0)
+                    .then((response)=>{
+                        console.log(response);
+                        this.is_upload=false;
+                        if(response.status==200){
+                        //    获取查询码
+                            this.hash='(获取到的查询码)';
+                            console.log(this.hash);
+                        }
+                        else {
+                            alert("a.上传失败，请重新选择文件");
+                            this.filename='';
+                        }
+                        }
+                    ).catch( (error)=> {
+                    alert("b.上传失败，请重新选择文件");
+                    this.is_upload=false;
+                    console.log(error);
+                });
+
+            },
+            click_submit(){
+                let x=document.getElementById("id_upload");
+                x.click()
+            },
+            get_filename(){
+                let x=document.getElementById("id_upload");
+                this.filename=x.value
+            }
+        }
+    }
+
+
+    //添加查询号组件
+    const inquire={
+        template:`
+        <div class="container">
+            <div class="form-group-lg" >
+              <label for="id_inquire" style="float:left">查询已分析文件</label>
+                <input type="text" class="form-control " id="id_inquire" placeholder="请输入查询号" v-model="inquire_num">
+            </div>
+             <button @click="quire" class="btn btn-lg btn-black">查询</button>
+        </div>
+
+        `,
+        data(){
+            return{
+                inquire_num:''
+            }
+        },
+        methods:{
+            quire(){
+                console.log("返回查询号：",this.inquire_num,"给后端");
+                if(this.inquire_num.length>1){
+                    //未出现缺失的情况 mode=2
+                    app.mode=2;
+                }
+                else {
+                    //未查询的情况 mode=1
+                    app.mode=1;
+                }
+            //    出现缺失的情况 mode=3
+            //    检测未完成 mode=4
+            }
+        }
+
+    }
+
+
     const app = new Vue({
         el: '#app',
         data: {
@@ -261,8 +414,10 @@
             depDic: '',
             depsConflictDic:'',
             projConflictDic:'',
-            missingDic:'dd',
+            missingDic:'',
             testdata:"测试",
+            mode:1,
+
 
         },
         methods: {
@@ -285,6 +440,8 @@
             deps_conflict,
             proj_conflict,
             missing_license,
+            upload_file,
+            inquire
         },
 
         created() {
@@ -292,6 +449,7 @@
             this.getDepDic();
             this.getProjConflictDic();
             this.getMissingDic();
+
 
 
         },
@@ -303,3 +461,73 @@
 
 
 </script>
+<!--鼠标心型特效-->
+<script type="text/javascript">
+    (function(window,document,undefined){
+        var hearts = [];
+        window.requestAnimationFrame = (function(){
+            return window.requestAnimationFrame ||
+                window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame ||
+                window.oRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                function (callback){
+                    setTimeout(callback,1000/60);
+                }
+        })();
+        init();
+        function init(){
+            css(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: absolute;}.heart:after{top: -5px;}.heart:before{left: -5px;}");
+            attachEvent();
+            gameloop();
+        }
+        function gameloop(){
+            for(var i=0;i<hearts.length;i++){
+                if(hearts[i].alpha <=0){
+                    document.body.removeChild(hearts[i].el);
+                    hearts.splice(i,1);
+                    continue;
+                }
+                hearts[i].y--;
+                hearts[i].scale += 0.004;
+                hearts[i].alpha -= 0.013;
+                hearts[i].el.style.cssText = "left:"+hearts[i].x+"px;top:"+hearts[i].y+"px;opacity:"+hearts[i].alpha+";transform:scale("+hearts[i].scale+","+hearts[i].scale+") rotate(45deg);background:"+hearts[i].color;
+            }
+            requestAnimationFrame(gameloop);
+        }
+        function attachEvent(){
+            var old = typeof window.onclick==="function" && window.onclick;
+            window.onclick = function(event){
+                old && old();
+                createHeart(event);
+            }
+        }
+        function createHeart(event){
+            var d = document.createElement("div");
+            d.className = "heart";
+            hearts.push({
+                el : d,
+                x : event.clientX - 5,
+                y : event.clientY - 5,
+                scale : 1,
+                alpha : 1,
+                color : randomColor()
+            });
+            document.body.appendChild(d);
+        }
+        function css(css){
+            var style = document.createElement("style");
+            style.type="text/css";
+            try{
+                style.appendChild(document.createTextNode(css));
+            }catch(ex){
+                style.styleSheet.cssText = css;
+            }
+            document.getElementsByTagName('head')[0].appendChild(style);
+        }
+        function randomColor(){
+            return "rgb("+(~~(Math.random()*255))+","+(~~(Math.random()*255))+","+(~~(Math.random()*255))+")";
+        }
+    })(window,document);
+</script>
+
