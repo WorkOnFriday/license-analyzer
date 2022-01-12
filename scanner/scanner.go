@@ -214,39 +214,14 @@ func deepScan(realFilePath, resultPath string, isLocal bool, local, external *[]
 	}
 }
 
-////If the dependent module only needs to scan the outermost layer, use this
-//func shallowScan(path string) map[string]interface{} {
-//	result := make(map[string]interface{})
-//	files, err := os.ReadDir(path)
-//	if err != nil {
-//		log.Fatalln(err)
-//	}
-//	var tmpDir = path
-//	// 其中只有一个目录，则进入目录中搜索
-//	if len(files) == 1 && files[0].IsDir() {
-//		tmpDir = filepath.Join(path, files[0].Name())
-//		files, err = os.ReadDir(tmpDir)
-//	}
-//	// 扫描此层所有证书文件
-//	for _, file := range files {
-//		name := strings.Split(strings.ToUpper(file.Name()), ".")
-//		if name[0] == "LICENSE" || name[0] == "COPYING" || name[len(name)-1] == "LICENSE" {
-//			//fileName, _ := filepath.Abs(file.Name())
-//			fileName := filepath.Join(tmpDir, file.Name())
-//			result[fileName] = scan(fileName)
-//		}
-//	}
-//	return result
-//}
-
 type ModuleDependency struct {
-	Module     string
-	Dependency []string
+	Module       string
+	Dependencies []string
 }
 
 type AllModuleDependency struct {
-	MainModule ModuleDependency
-	Modules    []ModuleDependency
+	Project ModuleDependency
+	Modules []ModuleDependency
 }
 
 func dependencyAnalyze(externalModules []JarPackages, local []PathLicense) (all AllModuleDependency) {
@@ -255,14 +230,16 @@ func dependencyAnalyze(externalModules []JarPackages, local []PathLicense) (all 
 		logrus.Debug("path: ", nowPathLicense.Path, " license: ", nowPathLicense.License)
 
 		modulePath := filepath.Dir(nowPathLicense.Path)
-		if !strings.Contains(modulePath, "/") && len(local) > 1 {
+		logrus.Debug("modulePath: ", modulePath)
+		// 保存项目名
+		if !strings.Contains(modulePath, "/") {
 			mainModule = modulePath
-			continue
 		}
 		// 扫描此模块的依赖
 		var importArr []string
 		javaScan(filepath.Join(ProjectTmp, modulePath), &importArr)
 		logrus.Debug("import arr: ", importArr)
+
 		for i := range importArr {
 			importArr[i] = removeModuleSuffix(importArr[i])
 		}
@@ -275,27 +252,29 @@ func dependencyAnalyze(externalModules []JarPackages, local []PathLicense) (all 
 			if strings.HasPrefix(module, "java.") {
 				continue
 			}
-			for _, jarPackages := range externalModules {
-				for _, pkg := range jarPackages.Package {
-					if moduleEqualInDepthLevel(3, strings.ReplaceAll(pkg, "/", "."), module) {
-						md.Dependency = append(md.Dependency, jarPackages.JarPath)
-						break // 无需重复
+			// 找每个import依赖的jar包
+			func() {
+				for _, jarPackages := range externalModules {
+					for _, pkg := range jarPackages.Package {
+						if moduleEqualInDepthLevel(3, strings.ReplaceAll(pkg, "/", "."), module) {
+							md.Dependencies = append(md.Dependencies, jarPackages.JarPath)
+							return // 已找到
+						}
 					}
 				}
-			}
+			}()
 		}
-		md.Dependency = removeRepeatElement(md.Dependency)
+		// 对被依赖的jar包去重
+		md.Dependencies = removeRepeatElement(md.Dependencies)
 		all.Modules = append(all.Modules, md)
 	}
 
-	if mainModule != "" {
-		var mainModuleArr []string
-		for _, md := range all.Modules {
-			mainModuleArr = append(mainModuleArr, md.Dependency...)
-		}
-		mainModuleArr = removeRepeatElement(mainModuleArr)
-		all.MainModule = ModuleDependency{Module: mainModule, Dependency: mainModuleArr}
+	var projectDependencies []string
+	for _, md := range all.Modules {
+		projectDependencies = append(projectDependencies, md.Dependencies...)
 	}
+	projectDependencies = removeRepeatElement(projectDependencies)
+	all.Project = ModuleDependency{Module: mainModule, Dependencies: projectDependencies}
 	return
 }
 

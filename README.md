@@ -100,14 +100,18 @@ GET 127.0.0.1:8080/task?id=0
     }
   ],
   "Dependency": {
-    "MainModule": {
-      "Module": "",
-      "Dependency": null
+    "Project": {
+      "Module": "ScannerTest4",
+      "Dependencies": [
+        "ScannerTest4\\lib\\DependedProject.jar",
+        "ScannerTest4\\antlib\\DependedProject2.jar",
+        "ScannerTest4\\antlib2\\DependedProject3.jar"
+      ]
     },
     "Modules": [
       {
         "Module": "ScannerTest4",
-        "Dependency": [
+        "Dependencies": [
           "ScannerTest4\\lib\\DependedProject.jar",
           "ScannerTest4\\antlib\\DependedProject2.jar",
           "ScannerTest4\\antlib2\\DependedProject3.jar"
@@ -138,14 +142,14 @@ GET 127.0.0.1:8080/task?id=0
     }
   ],
   "Dependency": {
-    "MainModule": {
-      "Module": "",
-      "Dependency": null
+    "Project": {
+      "Module": "ScannerTest6",
+      "Dependencies": []
     },
     "Modules": [
       {
         "Module": "ScannerTest6",
-        "Dependency": []
+        "Dependencies": []
       }
     ]
   },

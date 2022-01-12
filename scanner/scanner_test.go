@@ -71,13 +71,19 @@ func TestScanPackage(t *testing.T) {
 					fmt.Sprintf("%+v", expectAllLocalModule))
 
 				dependency := dependencyAnalyze(findAllExternalModule(external), local)
-				expectDependency := AllModuleDependency{MainModule: ModuleDependency{}, Modules: []ModuleDependency{
-					{Module: "ScannerTest4", Dependency: []string{
+				expectDependency := AllModuleDependency{Project: ModuleDependency{
+					Module: "ScannerTest4", Dependencies: []string{
 						"ScannerTest4\\lib\\DependedProject.jar",
 						"ScannerTest4\\antlib\\DependedProject2.jar",
 						"ScannerTest4\\antlib2\\DependedProject3.jar",
 					}},
-				}}
+					Modules: []ModuleDependency{
+						{Module: "ScannerTest4", Dependencies: []string{
+							"ScannerTest4\\lib\\DependedProject.jar",
+							"ScannerTest4\\antlib\\DependedProject2.jar",
+							"ScannerTest4\\antlib2\\DependedProject3.jar",
+						}},
+					}}
 				fmt.Printf("dependency result: %+v\n", dependency)
 				convey.So(fmt.Sprintf("%+v", dependency), convey.ShouldEqual,
 					fmt.Sprintf("%+v", expectDependency))
@@ -141,9 +147,11 @@ func TestScanPackage(t *testing.T) {
 					fmt.Sprintf("%+v", expectAllLocalModule))
 
 				dependency := dependencyAnalyze(findAllExternalModule(external), local)
-				expectDependency := AllModuleDependency{MainModule: ModuleDependency{}, Modules: []ModuleDependency{
-					{Module: "ScannerTest6", Dependency: []string{}},
-				}}
+				expectDependency := AllModuleDependency{
+					Project: ModuleDependency{Module: "ScannerTest6", Dependencies: []string{}},
+					Modules: []ModuleDependency{
+						{Module: "ScannerTest6", Dependencies: []string{}},
+					}}
 				fmt.Printf("dependency result: %+v\n", dependency)
 				convey.So(fmt.Sprintf("%+v", dependency), convey.ShouldEqual,
 					fmt.Sprintf("%+v", expectDependency))
