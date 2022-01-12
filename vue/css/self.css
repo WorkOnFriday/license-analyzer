@@ -28,3 +28,53 @@
     border-radius: 10px;
     background   : #ededed;
 }
+.big-classic-load-button,
+.infinite-load {
+    padding-top: 50px;
+    text-transform: uppercase;
+    font-weight: 600;
+    font-size: 20px;
+    letter-spacing: 2px;
+}
+.big-classic-load-button > a {
+    border: 1px solid #222;
+    display: inline-block;
+    padding: 30px 50px;
+    transition:.3s;
+}
+.big-classic-load-button > a:hover{background:#222;color:#fff;}
+.classic-load-button p.end
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    min-height: 100vh;
+}
+.search {
+    width: 200px;
+    height: 40px;
+    border-radius: 40px;
+    border: 2px solid lightblue;
+    right: 50vw;
+    top: 50vh;
+    outline: none;
+    text-indent: 12px;
+    color: #666;
+    font-size: 16px;
+    padding: 0;
+    transition: width 0.5s;
+}
+
+.search:focus {
+    width: 800px;
+}
+
+

@@ -311,11 +311,13 @@
             upload(){
 
                 let inputElement = document.getElementById("id_upload");
+                this.hash='';
                 this.is_upload=true;
                 let file = inputElement.files[0];
                 console.log(file);
                 if (!file) {
                     alert("请选择文件");
+                    this.is_upload=false;
                     return;
                 }
                 let size=file.size;
