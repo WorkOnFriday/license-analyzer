@@ -19,14 +19,11 @@ type PomLicense struct {
 	License string
 }
 type TaskResult struct {
-	IsFinish          bool
-	ErrorMessage      string
-	Local             []PathLicense
-	External          []PathLicense
-	AllExternalModule []JarPackages
-	AllLocalModule    []ModuleLicense
-	Dependency        AllModuleDependency
-	PomLicense        []PomLicense
+	IsFinish     bool
+	ErrorMessage string
+	Local        []PathLicense
+	Dependency   AllModuleDependency
+	PomLicense   []PomLicense
 }
 
 var taskCounter chan int
@@ -115,14 +112,11 @@ func startTaskQueue() {
 			}
 			// 汇总结果
 			taskResultMap[task.ID] = TaskResult{
-				IsFinish:          true,
-				ErrorMessage:      "",
-				Local:             local,
-				External:          external,
-				AllExternalModule: allExternalModule,
-				AllLocalModule:    allLocalModule,
-				Dependency:        dependency,
-				PomLicense:        pomLicenses,
+				IsFinish:     true,
+				ErrorMessage: "",
+				Local:        local,
+				Dependency:   dependency,
+				PomLicense:   pomLicenses,
 			}
 		}
 	}

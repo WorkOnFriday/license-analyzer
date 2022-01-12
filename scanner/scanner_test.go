@@ -53,10 +53,28 @@ func TestScanPackage(t *testing.T) {
 					fmt.Sprintf("%+v", expectLocal))
 
 				allExternalModule := findAllExternalModule(external)
-				expectAllExternalModule := []JarPackages{
-					{JarPath: "ScannerTest4\\antlib\\DependedProject2.jar", Package: []string{"dp2"}},
-					{JarPath: "ScannerTest4\\antlib2\\DependedProject3.jar", Package: []string{"dp3"}},
-					{JarPath: "ScannerTest4\\lib\\DependedProject.jar", Package: []string{"pri"}},
+				expectAllExternalModule := []JarPackage{
+					{
+						PathLicense: PathLicense{
+							Path:    "ScannerTest4\\antlib\\DependedProject2.jar",
+							License: "EUROPEAN UNION PUBLIC LICENCE V. 1.1",
+						},
+						Package: []string{"dp2"},
+					},
+					{
+						PathLicense: PathLicense{
+							Path:    "ScannerTest4\\antlib2\\DependedProject3.jar",
+							License: "MICROSOFT RECIPROCAL LICENSE",
+						},
+						Package: []string{"dp3"},
+					},
+					{
+						PathLicense: PathLicense{
+							Path:    "ScannerTest4\\lib\\DependedProject.jar",
+							License: "GENERAL PUBLIC LICENSE Version 2",
+						},
+						Package: []string{"pri"},
+					},
 				}
 				fmt.Printf("all external modules: %+v\n", allExternalModule)
 				convey.So(fmt.Sprintf("%+v", allExternalModule), convey.ShouldEqual,
@@ -71,17 +89,50 @@ func TestScanPackage(t *testing.T) {
 					fmt.Sprintf("%+v", expectAllLocalModule))
 
 				dependency := dependencyAnalyze(findAllExternalModule(external), local)
-				expectDependency := AllModuleDependency{Project: ModuleDependency{
-					Module: "ScannerTest4", Dependencies: []string{
-						"ScannerTest4\\lib\\DependedProject.jar",
-						"ScannerTest4\\antlib\\DependedProject2.jar",
-						"ScannerTest4\\antlib2\\DependedProject3.jar",
+				expectDependency := AllModuleDependency{Project: UnitDependency{
+					Name: "ScannerTest4", Dependencies: []JarPackage{
+						{
+							PathLicense: PathLicense{
+								Path:    "ScannerTest4\\lib\\DependedProject.jar",
+								License: "GENERAL PUBLIC LICENSE Version 2",
+							},
+							Package: []string{"pri"},
+						},
+						{
+							PathLicense: PathLicense{
+								Path:    "ScannerTest4\\antlib\\DependedProject2.jar",
+								License: "EUROPEAN UNION PUBLIC LICENCE V. 1.1",
+							},
+							Package: []string{"dp2"},
+						},
+						{
+							PathLicense: PathLicense{
+								Path:    "ScannerTest4\\antlib2\\DependedProject3.jar",
+								License: "MICROSOFT RECIPROCAL LICENSE",
+							},
+							Package: []string{"dp3"},
+						},
 					}},
-					Modules: []ModuleDependency{
-						{Module: "ScannerTest4", Dependencies: []string{
-							"ScannerTest4\\lib\\DependedProject.jar",
-							"ScannerTest4\\antlib\\DependedProject2.jar",
-							"ScannerTest4\\antlib2\\DependedProject3.jar",
+					Modules: []UnitDependency{
+						{Name: "ScannerTest4", Dependencies: []JarPackage{
+							{
+								PathLicense: PathLicense{
+									Path: "ScannerTest4\\lib\\DependedProject.jar", License: "GENERAL PUBLIC LICENSE Version 2",
+								},
+								Package: []string{"pri"},
+							},
+							{
+								PathLicense: PathLicense{
+									Path: "ScannerTest4\\antlib\\DependedProject2.jar", License: "EUROPEAN UNION PUBLIC LICENCE V. 1.1",
+								},
+								Package: []string{"dp2"},
+							},
+							{
+								PathLicense: PathLicense{
+									Path: "ScannerTest4\\antlib2\\DependedProject3.jar", License: "MICROSOFT RECIPROCAL LICENSE",
+								},
+								Package: []string{"dp3"},
+							},
 						}},
 					}}
 				fmt.Printf("dependency result: %+v\n", dependency)
@@ -133,7 +184,7 @@ func TestScanPackage(t *testing.T) {
 					fmt.Sprintf("%+v", expectLocal))
 
 				allExternalModule := findAllExternalModule(external)
-				var expectAllExternalModule []JarPackages
+				var expectAllExternalModule []JarPackage
 				fmt.Printf("all external modules: %+v\n", allExternalModule)
 				convey.So(fmt.Sprintf("%+v", allExternalModule), convey.ShouldEqual,
 					fmt.Sprintf("%+v", expectAllExternalModule))
@@ -148,9 +199,9 @@ func TestScanPackage(t *testing.T) {
 
 				dependency := dependencyAnalyze(findAllExternalModule(external), local)
 				expectDependency := AllModuleDependency{
-					Project: ModuleDependency{Module: "ScannerTest6", Dependencies: []string{}},
-					Modules: []ModuleDependency{
-						{Module: "ScannerTest6", Dependencies: []string{}},
+					Project: UnitDependency{Name: "ScannerTest6", Dependencies: []JarPackage{}},
+					Modules: []UnitDependency{
+						{Name: "ScannerTest6", Dependencies: []JarPackage{}},
 					}}
 				fmt.Printf("dependency result: %+v\n", dependency)
 				convey.So(fmt.Sprintf("%+v", dependency), convey.ShouldEqual,

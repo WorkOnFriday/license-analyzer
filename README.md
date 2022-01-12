@@ -59,62 +59,58 @@ GET 127.0.0.1:8080/task?id=0
       "License": "GENERAL PUBLIC LICENSE Version 2"
     }
   ],
-  "External": [
-    {
-      "Path": "ScannerTest4\\antlib\\DependedProject2.jar",
-      "License": "EUROPEAN UNION PUBLIC LICENCE V. 1.1"
-    },
-    {
-      "Path": "ScannerTest4\\antlib2\\DependedProject3.jar",
-      "License": "MICROSOFT RECIPROCAL LICENSE"
-    },
-    {
-      "Path": "ScannerTest4\\lib\\DependedProject.jar",
-      "License": "GENERAL PUBLIC LICENSE Version 2"
-    }
-  ],
-  "AllExternalModule": [
-    {
-      "JarPath": "ScannerTest4\\antlib\\DependedProject2.jar",
-      "Package": [
-        "dp2"
-      ]
-    },
-    {
-      "JarPath": "ScannerTest4\\antlib2\\DependedProject3.jar",
-      "Package": [
-        "dp3"
-      ]
-    },
-    {
-      "JarPath": "ScannerTest4\\lib\\DependedProject.jar",
-      "Package": [
-        "pri"
-      ]
-    }
-  ],
-  "AllLocalModule": [
-    {
-      "Module": "ScannerTest4",
-      "License": "GENERAL PUBLIC LICENSE Version 2"
-    }
-  ],
   "Dependency": {
     "Project": {
-      "Module": "ScannerTest4",
+      "Name": "ScannerTest4",
       "Dependencies": [
-        "ScannerTest4\\lib\\DependedProject.jar",
-        "ScannerTest4\\antlib\\DependedProject2.jar",
-        "ScannerTest4\\antlib2\\DependedProject3.jar"
+        {
+          "Path": "ScannerTest4\\lib\\DependedProject.jar",
+          "License": "GENERAL PUBLIC LICENSE Version 2",
+          "Package": [
+            "pri"
+          ]
+        },
+        {
+          "Path": "ScannerTest4\\antlib\\DependedProject2.jar",
+          "License": "EUROPEAN UNION PUBLIC LICENCE V. 1.1",
+          "Package": [
+            "dp2"
+          ]
+        },
+        {
+          "Path": "ScannerTest4\\antlib2\\DependedProject3.jar",
+          "License": "MICROSOFT RECIPROCAL LICENSE",
+          "Package": [
+            "dp3"
+          ]
+        }
       ]
     },
     "Modules": [
       {
-        "Module": "ScannerTest4",
+        "Name": "ScannerTest4",
         "Dependencies": [
-          "ScannerTest4\\lib\\DependedProject.jar",
-          "ScannerTest4\\antlib\\DependedProject2.jar",
-          "ScannerTest4\\antlib2\\DependedProject3.jar"
+          {
+            "Path": "ScannerTest4\\lib\\DependedProject.jar",
+            "License": "GENERAL PUBLIC LICENSE Version 2",
+            "Package": [
+              "pri"
+            ]
+          },
+          {
+            "Path": "ScannerTest4\\antlib\\DependedProject2.jar",
+            "License": "EUROPEAN UNION PUBLIC LICENCE V. 1.1",
+            "Package": [
+              "dp2"
+            ]
+          },
+          {
+            "Path": "ScannerTest4\\antlib2\\DependedProject3.jar",
+            "License": "MICROSOFT RECIPROCAL LICENSE",
+            "Package": [
+              "dp3"
+            ]
+          }
         ]
       }
     ]
@@ -133,23 +129,15 @@ GET 127.0.0.1:8080/task?id=0
       "License": "GENERAL PUBLIC LICENSE Version 2"
     }
   ],
-  "External": [],
-  "AllExternalModule": null,
-  "AllLocalModule": [
-    {
-      "Module": "ScannerTest6",
-      "License": "GENERAL PUBLIC LICENSE Version 2"
-    }
-  ],
   "Dependency": {
     "Project": {
-      "Module": "ScannerTest6",
-      "Dependencies": []
+      "Name": "ScannerTest6",
+      "Dependencies": null
     },
     "Modules": [
       {
-        "Module": "ScannerTest6",
-        "Dependencies": []
+        "Name": "ScannerTest6",
+        "Dependencies": null
       }
     ]
   },
