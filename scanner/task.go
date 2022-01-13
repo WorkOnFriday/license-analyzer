@@ -18,12 +18,25 @@ type PomLicense struct {
 	XMLDependency
 	License string
 }
+type ExternalConflict struct {
+	MainLicense     PathLicense
+	ExternalLicense PathLicense
+	Result          ConflictResult
+}
+type PomConflict struct {
+	MainLicense PathLicense
+	PomLicense  PomLicense
+	Result      ConflictResult
+}
 type TaskResult struct {
-	IsFinish     bool
-	ErrorMessage string
-	Local        []PathLicense
-	Dependency   AllModuleDependency
-	PomLicense   []PomLicense
+	IsFinish          bool
+	ErrorMessage      string
+	Local             []PathLicense
+	Dependency        AllModuleDependency
+	PomLicense        []PomLicense
+	ExternalConflicts []ExternalConflict
+	PomConflicts      []PomConflict
+	RecommendLicenses []string
 }
 
 var taskCounter chan int
@@ -108,15 +121,94 @@ func startTaskQueue() {
 					errorMessage += err.Error()
 					continue
 				}
+				result = strings.ReplaceAll(result, " ", "-")
 				pomLicenses = append(pomLicenses, PomLicense{XMLDependency: d, License: result})
 			}
+			logrus.Debugf("pomLicenses %+v", pomLicenses)
+
+			// 检查项目模块和依赖的jar包之间的冲突
+			var externalConflicts []ExternalConflict
+			var externalLicenses []string
+			for _, module := range dependency.Modules {
+				for _, jarPackage := range module.Dependencies {
+					// 每个模块依赖的每个jar包的许可证
+					logrus.Debug(jarPackage.License)
+					externalLicenses = append(externalLicenses, jarPackage.License)
+
+					for _, license := range local {
+						if !strings.HasPrefix(module.Name, filepath.Dir(license.Path)) {
+							continue
+						}
+						// 模块在项目中许可证的范围内
+						logrus.Debugf("- %s", license.License)
+						// 检测和记录许可证冲突
+						result := CheckLicenseConflictByShortName(LicenseLongNameToShort(license.License),
+							LicenseLongNameToShort(jarPackage.License))
+						if !result.Pass {
+							externalConflicts = append(externalConflicts,
+								ExternalConflict{MainLicense: license, ExternalLicense: jarPackage.PathLicense,
+									Result: result})
+						}
+					}
+				}
+			}
+			logrus.Debugf("externalConflicts: %+v", externalConflicts)
+
+			// 获取整个项目的许可证
+			var mainLicenseExist bool
+			var mainLicense PathLicense
+			for _, license := range local {
+				if filepath.Dir(license.Path) == dependency.Project.Name {
+					// 整个项目的许可证
+					logrus.Debug(license.License)
+					mainLicenseExist = true
+					mainLicense = license
+					break // 适用于整个项目的许可证只有一个
+				}
+			}
+			logrus.Debugf("mainLicense: %+v", mainLicense)
+
+			// 若项目许可证存在，检查项目和pom.xml描述的依赖之间的冲突
+			var recommendLicenses []string
+			var pomConflicts []PomConflict
+			if mainLicenseExist {
+				for _, pomLicense := range pomLicenses {
+					// pom.xml引入的依赖的许可证 应与 项目许可证不冲突
+					logrus.Debugf("- %s", pomLicense.License)
+					// 检测和记录许可证冲突
+					result := CheckLicenseConflictByShortName(LicenseLongNameToShort(mainLicense.License),
+						pomLicense.License)
+					if !result.Pass {
+						pomConflicts = append(pomConflicts,
+							PomConflict{MainLicense: mainLicense, PomLicense: pomLicense,
+								Result: result})
+					}
+				}
+			}
+			logrus.Debugf("pomConflicts: %+v", pomConflicts)
+
+			// 不论有没有项目许可证，是否冲突，总是进行推荐
+			var libraryLicenses []string
+			for _, externalLicense := range externalLicenses {
+				libraryLicenses = append(libraryLicenses, LicenseLongNameToShort(externalLicense))
+			}
+			for _, pomLicense := range pomLicenses {
+				libraryLicenses = append(libraryLicenses, pomLicense.License)
+			}
+			logrus.Debugf("libraryLicenses: %+v", libraryLicenses)
+			recommendLicenses = RecommendByLibraryLicenseShortName(libraryLicenses)
+			logrus.Debugf("recommendLicenses: %+v", recommendLicenses)
+
 			// 汇总结果
 			taskResultMap[task.ID] = TaskResult{
-				IsFinish:     true,
-				ErrorMessage: "",
-				Local:        local,
-				Dependency:   dependency,
-				PomLicense:   pomLicenses,
+				IsFinish:          true,
+				ErrorMessage:      "",
+				Local:             local,
+				Dependency:        dependency,
+				PomLicense:        pomLicenses,
+				ExternalConflicts: externalConflicts,
+				PomConflicts:      pomConflicts,
+				RecommendLicenses: recommendLicenses,
 			}
 		}
 	}
