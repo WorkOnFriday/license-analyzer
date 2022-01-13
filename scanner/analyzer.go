@@ -1,18 +1,25 @@
 /*
 Package scanner
-对项目执行扫描
+初始化许可证全名转简写
+许可证全名转简写
+检查许可证冲突
+推荐不与模块许可证冲突的项目许可证
 */
 package scanner
 
 import "strings"
 
+// LicensePair 许可证对
 type LicensePair struct {
-	first  string
-	second string
+	// mainLicense 项目许可证
+	mainLicense string
+	// libLicense 依赖的库的许可证
+	libLicense string
 }
 
 var pass = "相容"
 var fail = "冲突"
+var unknown = "分析失败，许可证库不包含对应信息"
 
 var licenseArr = [...]string{"LGPL-2.1-only", "LGPL-2.1-or-later", "LGPL-3.0-only", "GPL-2.0-only",
 	"GPL-2.0-or-later", "GPL-3.0-only", "AGPL-3.0-only", "Artistic-2.0", "CECILL-2.1", "EPL-1.0",
@@ -20,7 +27,7 @@ var licenseArr = [...]string{"LGPL-2.1-only", "LGPL-2.1-or-later", "LGPL-3.0-onl
 	"CPL-1.0", "IPL-1.0", "LPL-1.02", "Nokia", "RPSL-1.0", "SISSL", "Sleepycat", "SPL-1.0",
 	"php-3.01", "Apache-2.0", "ECL-2.0"}
 
-var licenseSimp = map[string]string{
+var licenseLongToShort = map[string]string{
 	"GNU Lesser General Public License v2.1 only": "LGPL-2.1-only",
 	//此文本无法分辨是only还是or-later，暂归类为or-later
 	"GNU LESSER GENERAL PUBLIC LICENSE Version 2.1":   "LGPL-2.1-or-later",
@@ -85,8 +92,8 @@ var licenseSimp = map[string]string{
 	"Educational Community License Version 2.0":                         "ECL-2.0",
 }
 
-// licenseMap记录项目所使用许可证与项目所依赖的库的许可证之间的关系
-var licenseMap = map[LicensePair]string{
+// licenseConflictBaseMap 记录项目所使用许可证与项目所依赖的库的许可证之间的关系
+var licenseConflictBaseMap = map[LicensePair]string{
 	LicensePair{"LGPL-2.1-only", "LGPL-2.1-only"}:         pass,
 	LicensePair{"LGPL-2.1-only", "LGPL-2.1-or-later"}:     pass,
 	LicensePair{"LGPL-2.1-only", "LGPL-3.0-only"}:         pass,
@@ -1019,31 +1026,75 @@ var licenseMap = map[LicensePair]string{
 	LicensePair{"ECL-2.0", "php-3.01"}:                    pass,
 }
 
-// 判断两个许可证是否相容，参数类型为两个字符串
-// 第一个参数是自己项目要使用的许可证，第二个参数是要使用的库的许可证
-func Check(l1 string, l2 string) string {
-	value, ok := licenseMap[LicensePair{l1, l2}]
-	if ok {
-		return value
-	} else {
-		return "分析失败，许可证库不包含对应信息"
-	}
+type ConflictResult struct {
+	Unknown bool
+	Pass    bool
+	Message string
 }
 
-// 提供一些推荐许可证
+var licenseConflictMap = map[LicensePair]ConflictResult{}
+
+func InitializeAnalyzer() {
+	// 转换“许可证全名变简称”：全部去除空格改为小写，支持无GNU的许可证名
+	var longLicenses []string
+	var shortLicenses []string
+	for longLicense, shortLicense := range licenseLongToShort {
+		// 去空格和转为小写
+		longLicense = strings.ToLower(strings.ReplaceAll(longLicense, " ", ""))
+		longLicenses = append(longLicenses, longLicense)
+		shortLicenses = append(shortLicenses, shortLicense)
+		// 另存无gnu的版本
+		if strings.HasPrefix(longLicense, "gnu") {
+			longLicenses = append(longLicenses, longLicense[3:])
+			shortLicenses = append(shortLicenses, shortLicense)
+		}
+	}
+	licenseLongToShort = map[string]string{}
+	for i := range longLicenses {
+		licenseLongToShort[longLicenses[i]] = shortLicenses[i]
+	}
+	// 转换许可证冲突检测结果
+	for licensePair, result := range licenseConflictBaseMap {
+		licenseConflictMap[licensePair] =
+			ConflictResult{Unknown: false, Pass: strings.HasPrefix(result, pass), Message: result}
+	}
+	//for licensePair, result := range licenseConflictMap {
+	//	fmt.Printf("%+v %+v\n", licensePair, result)
+	//}
+}
+
+func LicenseLongNameToShort(str string) string {
+	return licenseLongToShort[strings.ToLower(strings.ReplaceAll(str, " ", ""))]
+}
+
+// CheckLicenseConflictByShortName 判断两个许可证是否相容，参数类型为两个许可证简称字符串
+// 第一个参数是自己项目要使用的许可证，第二个参数是要使用的库的许可证
+// 返回相容性信息 和 是否确定相容
+func CheckLicenseConflictByShortName(mainLicense string, libLicense string) (result ConflictResult) {
+	result, known := licenseConflictMap[LicensePair{mainLicense, libLicense}]
+	if !known {
+		// 未知
+		result.Unknown = true
+		result.Message = unknown
+	}
+	return
+}
+
+// RecommendByLibraryLicenseLongName 依据依赖库的许可证全名，提供一些推荐许可证
 // 参数是一个字符串数组切片，代表所使用的各个库的许可证
 // 返回一个长度不大于3的推荐许可证数组切片。
-func Recommand(arr []string) []string {
-	result := []string{}
+func RecommendByLibraryLicenseLongName(libLicenses []string) []string {
+	var result []string
 	for _, l1 := range licenseArr {
-		flag := true
-		for _, l2 := range arr {
-			if !strings.HasPrefix(Check(l1, l2), pass) {
-				flag = false
+		noConflict := true
+		for _, l2 := range libLicenses {
+			conflictResult := CheckLicenseConflictByShortName(l1, LicenseLongNameToShort(l2))
+			if !conflictResult.Pass {
+				noConflict = false
 				break
 			}
 		}
-		if flag {
+		if noConflict {
 			result = append(result, l1)
 		}
 	}
@@ -1052,5 +1103,4 @@ func Recommand(arr []string) []string {
 	} else {
 		return result
 	}
-
 }

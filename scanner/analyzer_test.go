@@ -1,47 +1,98 @@
 package scanner
 
+/*
+测试许可证全名转简写
+测试检查许可证冲突
+测试推荐的许可证无冲突
+*/
+
 import (
+	"fmt"
 	"github.com/smartystreets/goconvey/convey"
-	"strings"
 	"testing"
 )
 
-func TestCheck(t *testing.T) {
-	t.Run("TestCheck", func(t *testing.T) {
-		convey.Convey("Test1", t, func() {
-			convey.So(Check("LGPL-2.1-only", "LGPL-2.1-or-later"), convey.ShouldEqual, "相容")
-			convey.So(Check("LGPL-2.1-only", "GPL-2.0-only"), convey.ShouldEqual, "相容, 组合遵循GPL-2.0-only")
-			convey.So(Check("LGPL-2.1-only", "Sleepycat"), convey.ShouldEqual, "相容, 并入的代码遵循LGPL-2.1-only")
-			convey.So(Check("LGPL-2.1-only", "MS-RL"), convey.ShouldEqual, "冲突")
-			convey.So(Check("fwhLicense", "MS-RL"), convey.ShouldEqual, "分析失败，许可证库不包含对应信息")
-		})
+func TestLicenseLongNameToShort(t *testing.T) {
+	InitializeAnalyzer()
+	t.Run("TestLicenseLongNameToShort", func(t *testing.T) {
+		testCases := []struct {
+			longName  string
+			shortName string
+		}{
+			// 允许无GNU
+			{"GNU LESSER GENERAL PUBLIC LICENSE Version 2.1", "LGPL-2.1-or-later"},
+			{"LESSER GENERAL PUBLIC LICENSE Version 2.1", "LGPL-2.1-or-later"},
+			// 允许空格增减
+			{"EUROPEAN UNION PUBLIC LICENCE V. 1.1", "EUPL-1.1"},
+			{"EUROPEAN UNION PUBLIC LICENCE V.1.1", "EUPL-1.1"},
+
+			{"MICROSOFT RECIPROCAL LICENSE", "MS-RL"},
+		}
+		for i, testCase := range testCases {
+			t.Run(fmt.Sprintf("Test%d", i), func(t *testing.T) {
+				convey.Convey("Test", t, func() {
+					convey.So(LicenseLongNameToShort(testCase.longName), convey.ShouldEqual, testCase.shortName)
+				})
+			})
+		}
 	})
 }
 
-func TestRecommand(t *testing.T) {
-	t.Run("TestRecommand", func(t *testing.T) {
-		convey.Convey("Test1", t, func() {
-			var testArr1 = []string{"GPL-2.0-only"}
-			var result1 = Recommand(testArr1)
-			for _, v1 := range result1 {
-				for _, v2 := range testArr1 {
-					convey.So(strings.HasPrefix(Check(v1, v2), pass), convey.ShouldBeTrue)
-				}
-			}
-			var testArr2 = []string{"GPL-2.0-only", "EUPL-1.1", "MS-RL"}
-			var result2 = Recommand(testArr2)
-			for _, v1 := range result2 {
-				for _, v2 := range testArr2 {
-					convey.So(strings.HasPrefix(Check(v1, v2), pass), convey.ShouldBeTrue)
-				}
-			}
-			var testArr3 = []string{"Apache-2.0", "GPL-2.0-only"}
-			var result3 = Recommand(testArr3)
-			for _, v1 := range result3 {
-				for _, v2 := range testArr3 {
-					convey.So(strings.HasPrefix(Check(v1, v2), pass), convey.ShouldBeTrue)
-				}
-			}
-		})
+func TestCheckLicenseConflictByShortName(t *testing.T) {
+	InitializeAnalyzer()
+	t.Run("TestCheckLicenseConflictByShortName", func(t *testing.T) {
+		testCases := []struct {
+			mainLicense string
+			libLicense  string
+			result      ConflictResult
+		}{
+			{"LGPL-2.1-only", "LGPL-2.1-or-later",
+				ConflictResult{false, true, pass}},
+			{"LGPL-2.1-only", "GPL-2.0-only",
+				ConflictResult{false, true, "相容, 组合遵循GPL-2.0-only"}},
+			{"LGPL-2.1-only", "Sleepycat",
+				ConflictResult{false, true, "相容, 并入的代码遵循LGPL-2.1-only"}},
+			{"LGPL-2.1-only", "MS-RL",
+				ConflictResult{false, false, fail}},
+			{"fwhLicense", "MS-RL",
+				ConflictResult{true, false, unknown}},
+		}
+		for i, testCase := range testCases {
+			t.Run(fmt.Sprintf("Test%d", i), func(t *testing.T) {
+				convey.Convey("Test", t, func() {
+					result := CheckLicenseConflictByShortName(testCase.mainLicense, testCase.libLicense)
+					convey.So(result.Unknown, convey.ShouldEqual, testCase.result.Unknown)
+					convey.So(result.Pass, convey.ShouldEqual, testCase.result.Pass)
+					convey.So(result.Message, convey.ShouldEqual, testCase.result.Message)
+				})
+			})
+		}
+	})
+}
+
+func TestRecommendByLibraryLicenseLongName(t *testing.T) {
+	InitializeAnalyzer()
+	t.Run("TestRecommend", func(t *testing.T) {
+		testCases := []struct {
+			libLicenses []string
+		}{
+			{libLicenses: []string{"GNU General Public License v2.0 only"}},
+			{libLicenses: []string{"GNU General Public License v2.0 only", "European Union Public Licence V. 1.1", "Microsoft Reciprocal License"}},
+			{libLicenses: []string{"Apache License Version 2.0", "GNU General Public License v2.0 only"}},
+		}
+		for i, testCase := range testCases {
+			t.Run(fmt.Sprintf("Test%d", i), func(t *testing.T) {
+				convey.Convey("Test", t, func() {
+					var recommendLicenses = RecommendByLibraryLicenseLongName(testCase.libLicenses)
+					for _, recommendLicense := range recommendLicenses {
+						for _, libLicense := range testCase.libLicenses {
+							conflictResult := CheckLicenseConflictByShortName(recommendLicense,
+								LicenseLongNameToShort(libLicense))
+							convey.So(conflictResult.Pass, convey.ShouldBeTrue)
+						}
+					}
+				})
+			})
+		}
 	})
 }

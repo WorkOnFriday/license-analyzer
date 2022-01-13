@@ -19,6 +19,8 @@ func main() {
 	redis.SetRedis()
 	// 运行任务处理队列
 	scanner.StartTaskSystem()
+	// 初始化许可证分析
+	scanner.InitializeAnalyzer()
 	// 运行服务
 	router.SetRouterAndRun()
 }
