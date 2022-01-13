@@ -1,7 +1,10 @@
 package scanner
 
 import (
+	"encoding/json"
 	"github.com/sirupsen/logrus"
+	"license-analyzer/conf"
+	"license-analyzer/mysql"
 	"license-analyzer/util"
 	"os"
 	"path"
@@ -48,13 +51,29 @@ var taskQueue chan Task
 
 var taskResultMap = make(map[int]TaskResult)
 
-func startTaskCounter() {
+func readTaskResultFromMySQL() (id int) {
+	dbTaskResults := mysql.ReadAllTaskResult()
+	taskResults := make([]TaskResult, len(dbTaskResults))
+	for i, result := range dbTaskResults {
+		err := json.Unmarshal(result.Result, &taskResults[i])
+		if err != nil {
+			logrus.Error("ReadAllTaskResult error: ", err.Error())
+		}
+		taskResultMap[result.ID] = taskResults[i]
+		if result.ID > id {
+			id = result.ID
+		}
+	}
+	logrus.Debugf("readTaskResultFromMySQL taskResults %+v", taskResults)
+	return
+}
+
+func startTaskCounter(id int) {
 	taskCounter = make(chan int)
 	go func() {
-		id := 0
 		for {
-			taskCounter <- id
 			id++
+			taskCounter <- id
 		}
 	}()
 }
@@ -215,7 +234,7 @@ func startTaskQueue() {
 			logrus.Debugf("recommendLicenses: %+v", recommendLicenses)
 
 			// 汇总结果
-			taskResultMap[task.ID] = TaskResult{
+			taskResult := TaskResult{
 				IsFinish:          true,
 				ErrorMessage:      "",
 				Local:             local,
@@ -225,6 +244,15 @@ func startTaskQueue() {
 				ExternalConflicts: externalConflicts,
 				PomConflicts:      pomConflicts,
 				RecommendLicenses: recommendLicenses,
+			}
+			taskResultMap[task.ID] = taskResult
+			if conf.Config.MySQL.IsUsed {
+				result, err := json.Marshal(&taskResult)
+				if err != nil {
+					logrus.Error("startTaskQueue error: ", err.Error())
+					return
+				}
+				mysql.CreateTaskResult(task.ID, result)
 			}
 		}
 	}
@@ -239,7 +267,14 @@ func startTaskQueue() {
 }
 
 func StartTaskSystem() {
-	startTaskCounter()
+	var id int
+	if conf.Config.MySQL.IsUsed {
+		// 读MySQL数据
+		id = readTaskResultFromMySQL()
+	}
+	// 继续计数
+	startTaskCounter(id)
+	// 开始任务队列
 	startTaskQueue()
 }
 

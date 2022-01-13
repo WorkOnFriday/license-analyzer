@@ -1,0 +1,8 @@
+{
+  "mysql": {
+    "isUsed": true,
+    "username": "test",
+    "password": "Test@123",
+    "databaseName": "test_db"
+  }
+}

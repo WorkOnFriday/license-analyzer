@@ -11,9 +11,36 @@ ini形式:
 package conf
 
 import (
+	"encoding/json"
 	"log"
+	"os"
 )
+
+type MysqlConfigure struct {
+	IsUsed       bool
+	Username     string
+	Password     string
+	DatabaseName string
+}
+
+type Configure struct {
+	MySQL MysqlConfigure
+}
+
+var Config Configure
 
 func ReadConfFile() {
 	log.Println("read conf file")
+
+	file, err := os.Open("conf/config.json")
+	if err != nil {
+		log.Fatalln("Configure file error ", err.Error())
+	}
+	defer file.Close()
+
+	err = json.NewDecoder(file).Decode(&Config)
+	if err != nil {
+		log.Fatalln("decode error", err.Error())
+	}
+	log.Println("read conf file success", Config)
 }

@@ -4,7 +4,6 @@ import (
 	"license-analyzer/conf"
 	"license-analyzer/logger"
 	"license-analyzer/mysql"
-	"license-analyzer/redis"
 	"license-analyzer/router"
 	"license-analyzer/scanner"
 )
@@ -15,8 +14,7 @@ func main() {
 	// 设置全局日志(输出接下来操作的错误信息)
 	logger.SetLoggerConfig()
 	// 设置数据库
-	mysql.SetMySQL()
-	redis.SetRedis()
+	mysql.InitializeMySQL()
 	// 运行任务处理队列
 	scanner.StartTaskSystem()
 	// 初始化许可证分析
