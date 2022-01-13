@@ -34,6 +34,7 @@ type TaskResult struct {
 	Local             []PathLicense
 	Dependency        AllModuleDependency
 	PomLicense        []PomLicense
+	LocalConflicts    []ExternalConflict
 	ExternalConflicts []ExternalConflict
 	PomConflicts      []PomConflict
 	RecommendLicenses []string
@@ -126,14 +127,46 @@ func startTaskQueue() {
 			}
 			logrus.Debugf("pomLicenses %+v", pomLicenses)
 
+			// 记录推荐许可证依据的其它许可证
+			var otherLicenses []string
+
+			// 获取整个项目的许可证
+			// 检查项目深层许可证是否与浅层冲突
+			var mainLicenseExist bool
+			var mainLicense PathLicense
+			var localConflicts []ExternalConflict
+			for _, mainPathLicense := range local {
+				if filepath.Dir(mainPathLicense.Path) == dependency.Project.Name {
+					// 是整个项目的许可证
+					mainLicenseExist = true
+					mainLicense = mainPathLicense
+					logrus.Debugf("mainLicense %+v", mainLicense)
+				} else {
+					// 不是整个项目的许可证
+					otherLicenses = append(otherLicenses, LicenseLongNameToShort(mainPathLicense.License))
+				}
+
+				for _, pathLicense := range local {
+					if !strings.HasPrefix(filepath.Dir(pathLicense.Path), filepath.Dir(mainPathLicense.Path)) {
+						continue
+					}
+					result := CheckLicenseConflictByShortName(LicenseLongNameToShort(mainPathLicense.License),
+						LicenseLongNameToShort(pathLicense.License))
+					if !result.Pass {
+						localConflicts = append(localConflicts,
+							ExternalConflict{mainPathLicense, pathLicense, result})
+					}
+				}
+			}
+			logrus.Debugf("localConflicts: %+v", localConflicts)
+
 			// 检查项目模块和依赖的jar包之间的冲突
 			var externalConflicts []ExternalConflict
-			var externalLicenses []string
 			for _, module := range dependency.Modules {
 				for _, jarPackage := range module.Dependencies {
 					// 每个模块依赖的每个jar包的许可证
 					logrus.Debug(jarPackage.License)
-					externalLicenses = append(externalLicenses, jarPackage.License)
+					otherLicenses = append(otherLicenses, LicenseLongNameToShort(jarPackage.License))
 
 					for _, license := range local {
 						if !strings.HasPrefix(module.Name, filepath.Dir(license.Path)) {
@@ -153,20 +186,6 @@ func startTaskQueue() {
 				}
 			}
 			logrus.Debugf("externalConflicts: %+v", externalConflicts)
-
-			// 获取整个项目的许可证
-			var mainLicenseExist bool
-			var mainLicense PathLicense
-			for _, license := range local {
-				if filepath.Dir(license.Path) == dependency.Project.Name {
-					// 整个项目的许可证
-					logrus.Debug(license.License)
-					mainLicenseExist = true
-					mainLicense = license
-					break // 适用于整个项目的许可证只有一个
-				}
-			}
-			logrus.Debugf("mainLicense: %+v", mainLicense)
 
 			// 若项目许可证存在，检查项目和pom.xml描述的依赖之间的冲突
 			var recommendLicenses []string
@@ -188,15 +207,11 @@ func startTaskQueue() {
 			logrus.Debugf("pomConflicts: %+v", pomConflicts)
 
 			// 不论有没有项目许可证，是否冲突，总是进行推荐
-			var libraryLicenses []string
-			for _, externalLicense := range externalLicenses {
-				libraryLicenses = append(libraryLicenses, LicenseLongNameToShort(externalLicense))
-			}
 			for _, pomLicense := range pomLicenses {
-				libraryLicenses = append(libraryLicenses, pomLicense.License)
+				otherLicenses = append(otherLicenses, pomLicense.License)
 			}
-			logrus.Debugf("libraryLicenses: %+v", libraryLicenses)
-			recommendLicenses = RecommendByLibraryLicenseShortName(libraryLicenses)
+			logrus.Debugf("otherLicenses: %+v", otherLicenses)
+			recommendLicenses = RecommendByLibraryLicenseShortName(otherLicenses)
 			logrus.Debugf("recommendLicenses: %+v", recommendLicenses)
 
 			// 汇总结果
@@ -206,6 +221,7 @@ func startTaskQueue() {
 				Local:             local,
 				Dependency:        dependency,
 				PomLicense:        pomLicenses,
+				LocalConflicts:    localConflicts,
 				ExternalConflicts: externalConflicts,
 				PomConflicts:      pomConflicts,
 				RecommendLicenses: recommendLicenses,
