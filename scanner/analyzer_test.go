@@ -76,18 +76,17 @@ func TestRecommendByLibraryLicenseLongName(t *testing.T) {
 		testCases := []struct {
 			libLicenses []string
 		}{
-			{libLicenses: []string{"GNU General Public License v2.0 only"}},
-			{libLicenses: []string{"GNU General Public License v2.0 only", "European Union Public Licence V. 1.1", "Microsoft Reciprocal License"}},
-			{libLicenses: []string{"Apache License Version 2.0", "GNU General Public License v2.0 only"}},
+			{libLicenses: []string{"GPL-2.0-only"}},
+			{libLicenses: []string{"GPL-2.0-only", "EUPL-1.1", "MS-RL"}},
+			{libLicenses: []string{"Apache-2.0", "GPL-2.0-only"}},
 		}
 		for i, testCase := range testCases {
 			t.Run(fmt.Sprintf("Test%d", i), func(t *testing.T) {
 				convey.Convey("Test", t, func() {
-					var recommendLicenses = RecommendByLibraryLicenseLongName(testCase.libLicenses)
+					var recommendLicenses = RecommendByLibraryLicenseShortName(testCase.libLicenses)
 					for _, recommendLicense := range recommendLicenses {
 						for _, libLicense := range testCase.libLicenses {
-							conflictResult := CheckLicenseConflictByShortName(recommendLicense,
-								LicenseLongNameToShort(libLicense))
+							conflictResult := CheckLicenseConflictByShortName(recommendLicense, libLicense)
 							convey.So(conflictResult.Pass, convey.ShouldBeTrue)
 						}
 					}

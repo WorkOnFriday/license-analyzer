@@ -1080,15 +1080,15 @@ func CheckLicenseConflictByShortName(mainLicense string, libLicense string) (res
 	return
 }
 
-// RecommendByLibraryLicenseLongName 依据依赖库的许可证全名，提供一些推荐许可证
+// RecommendByLibraryLicenseShortName 依据依赖库的许可证简称，提供一些推荐许可证
 // 参数是一个字符串数组切片，代表所使用的各个库的许可证
 // 返回一个长度不大于3的推荐许可证数组切片。
-func RecommendByLibraryLicenseLongName(libLicenses []string) []string {
+func RecommendByLibraryLicenseShortName(libLicenses []string) []string {
 	var result []string
 	for _, l1 := range licenseArr {
 		noConflict := true
 		for _, l2 := range libLicenses {
-			conflictResult := CheckLicenseConflictByShortName(l1, LicenseLongNameToShort(l2))
+			conflictResult := CheckLicenseConflictByShortName(l1, l2)
 			if !conflictResult.Pass {
 				noConflict = false
 				break
