@@ -256,7 +256,11 @@ func dependencyAnalyze(externalModules []JarPackage, local []PathLicense) (all A
 		modulePath := filepath.Dir(nowPathLicense.Path)
 		logrus.Debug("modulePath: ", modulePath)
 		// 保存项目名
-		if !strings.Contains(modulePath, "/") {
+		splitToken := "\\"
+		if runtime.GOOS == "linux" {
+			splitToken = "/"
+		}
+		if !strings.Contains(modulePath, splitToken) {
 			projectName = modulePath
 		}
 		// 扫描此模块的依赖
