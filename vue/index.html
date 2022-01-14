@@ -21,6 +21,7 @@
 <script src="js/vue.js"></script>
 <script src="js/axios.min.js"></script>
 <script src="js/md5.js"></script>
+<script type="module" src="js/qs.js"></script>
 
 <div id="app" >
 
@@ -335,19 +336,20 @@
                 let config = {
                     headers: { "Content-Type": "multipart/form-data" }
                 };
+                // post上传文件和获取返回值
+                //
+                // axios.post("./", param, config,maxPostSize=0)
 
-                //post上传文件和获取返回值
+                // import qs from './js/qs.js'
+                axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+                let data = Qs.stringify(param)
+                axios({
+                    url:'./',
+                      method:'post',
+                      data:data
 
-                // import {qs} from './vue/js/axios.js' ?不清楚你的具体路径
-                //axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
-                //let data = qs.stringify(param)//我看你原来用的param
-                // axios({
-                //       method:'post',
-                //       data:data
+                      })
 
-                //       })
-                //添加qs处理大文件post
-                axios.post("./", param, config,maxPostSize=0)
                     .then((response)=>{
                         console.log(response);
                         this.is_upload=false;

@@ -1,0 +1,77 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+</head>
+<body>
+<canvas id="myCanvas" width="96px" height="96px"></canvas>
+</body>
+<script type="text/javascript">
+    //画圆方法
+    function drawArc(canvas,begin,end,color)
+    {
+
+        canvas.beginPath();
+
+        canvas.lineWidth = 6;
+
+        canvas.fillStyle = "#ffffff";
+
+        canvas.strokeStyle = color;
+
+        canvas.arc(48, 48, 40, begin,end);
+
+        canvas.fill();
+
+        canvas.stroke();
+
+        canvas.closePath();
+
+    }
+
+    //添加文字方法
+    function drawWord(canvas,text){
+        canvas.font = 'bold 20px arial';
+        canvas.fillStyle = 'red';
+        canvas.fillText(text, 30,53);
+    }
+
+    //每100毫秒画一次，300毫秒完成
+    function darwPro(id,rate){
+
+        //获取画布对象
+        var canvasID = document.getElementById("myCanvas");
+        var canvas = canvasID.getContext("2d");
+
+        //先画背景
+        drawArc(canvas,-0.5*Math.PI,1.5*Math.PI,"#EDEDED");
+
+        //setInterval()函数至少执行一次(当rate为零时直接返回)
+        if(rate == 0){
+            return;
+        }
+
+        //为了体现动态图使用分段画图的策略
+        var begin = -0.5*Math.PI;//起始角度
+        var end = 2*Math.PI*rate-0.5*Math.PI;//结束角度
+        var add = 2*Math.PI*rate/10;//分段的增量
+
+        //分10次完成每次间隔50毫秒
+        var sid = setInterval(function(){
+            if(begin >= end){
+                clearInterval(sid);
+                return;//此处必须return；因为即使clearInterval，函数仍然会执行一次导致比例不准确
+            }
+            drawArc(canvas,begin, begin + add,"red");
+            //下次起始位置置为上次结束的位置
+            begin = begin + add;
+        }, 50);
+
+        //显示百分比的文字
+        drawWord(canvas,rate*100 + "%");
+    }
+
+    darwPro("myCanvas",0.4);
+</script>
