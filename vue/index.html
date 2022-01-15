@@ -358,7 +358,8 @@
                         if(response.status==200){
                         //    获取查询码
                             console.log(response);
-                            this.hash='(获取到的查询码)';
+                            // 显示字符串查询码
+                            this.hash=response.data+"";
                             console.log(this.hash);
                         }
                         else {
