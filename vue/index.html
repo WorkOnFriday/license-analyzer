@@ -31,10 +31,12 @@
     <inquire></inquire>
 
     <div v-if="mode==2" >
+        <all_license :license_dic="licenseDic" :pom_dic="pomLicenseDic"></all_license>
         <dep_info :dep_dic="depDic"></dep_info>
         <deps_conflict :deps_conflict_dic="depsConflictDic"></deps_conflict>
         <proj_conflict :proj_conflict_dic="projConflictDic"></proj_conflict>
         <missing_license :missing_dic="missingDic" :mode="mode"></missing_license>
+
 
     </div>
 
@@ -223,7 +225,7 @@
         `,
         props:['proj_conflict_dic']
     }
-    //license缺失
+    //license缺失&推荐license
     const missing_license={
         template:`
           <div class="stickyfooter header-fixed" v-if="missing_dic.length!=0">
@@ -243,16 +245,16 @@
                   <div class="row">
                     <div>
 
-                      <div  class="col-md-12">
+                      <div  class="col-md-6 col-md-offset-3">
 
                         <div class="pricing-table mb30 " style="height: 400px;overflow: hidden !important;">
                           <h4 >推荐许可证</h4>
                           <hr>
 
-                          <div class="price-body text-left   " >
+                          <div class="price-body  test test-1 " >
                             <ul>
 <!--                              <li ><span style="font-weight: bold;">缺失项目名:</span>: {{missing_dic[0].missingPackage}}</li>-->
-                              <li v-for="(recommend,idx) in missing_dic[0].recommends"><span style="font-weight: bold">推荐许可证{{idx+1}}:</span>{{recommend}}</li>
+                              <li v-for="(recommend,idx) in missing_dic[0].recommends">{{recommend}}</li>
                             </ul>
 
                           </div>
@@ -381,7 +383,74 @@
             }
         }
     }
+    //显示所有许可证组件
+    const all_license={
+        template: `
+          <div class="stickyfooter header-fixed" >
+          <div class="content">
+            <main>
+              <section class="pricing-area pt90 pb30">
+                <div class="container">
+                  <hr color="black ">
+                  <div class="row">
+                    <div class="col-xs-12">
+                      <div class="area-heading text-center">
+                        <h2 class="area-title">许可证信息</h2>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row ">
+                    <div>
 
+                      <div  class="col-md-8 col-md-offset-2 card">
+
+                        <div class="pricing-table mb30">
+                          <div class="price-header">
+                            <span class="price">pom许可证</span>
+                          </div>
+                          <hr>
+                          <div class="price-body">
+
+                            <ul v-for="pom in pom_dic">
+                              <li class="text-left"><span style="font-weight: bold">GroupID:</span>{{pom["groupID"] }}</li>
+                              <li class="text-left"><span style="font-weight: bold">ArtifactID:</span>{{pom["artifactID"]}}</li>
+                              <li class="text-left"><span style="font-weight: bold">Version:</span>{{pom["version"]}}</li>
+                              <li class="text-left"><span style="font-weight: bold">License:</span>{{pom["license"]}}</li>
+                              <hr>
+                            </ul>
+                          </div>
+
+                          <div class="price-header">
+                            <span class="price">其他许可证</span>
+                          </div>
+                          <hr>
+                          <div class="price-body">
+
+                            <ul v-for="lic in license_dic">
+                              <li class="text-left"><span style="font-weight: bold">path:</span>{{lic["path"] }}</li>
+                              <li class="text-left"><span style="font-weight: bold">license:</span>{{lic["license"]}}</li>
+                              <hr>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+
+                  </div>
+                  <hr color="black ">
+                </div>
+              </section>
+            </main>
+          </div>
+          </div>
+
+        `,
+        data() {
+            return {}
+        },
+        props: ['license_dic','pom_dic']
+    }
 
     //添加查询号组件
     const inquire={
@@ -430,7 +499,9 @@
             depsConflictDic:'',
             projConflictDic:'',
             missingDic:'',
-            testdata:"测试",
+            pomLicenseDic:'',
+            licenseDic:'',
+            testData:"测试",
             mode:1,
 
 
@@ -450,11 +521,15 @@
                 instance.get("json/missingDemo.json").then(respon => this.missingDic=respon.data);
             },
             getTestdata(id){
-                instance.get("/task/?id="+id).then((respon)=> {
+                // instance.get("/task/?id="+id)
+                    instance.get("./json/test.json")
+                    .then((respon)=> {
                     this.depDic={};
                     this.depsConflictDic=[];
                     this.projConflictDic=[];
                     this.missingDic=[];
+                    this.pomLicenseDic=[];
+                    this.licenseDic=[];     //path=""  license=""
                     if (respon.data["IsFinish"]==true ){
                         this.mode=2;
                         //处理依赖关系
@@ -470,7 +545,6 @@
                                 }
                             }
                         }
-                        console.log(this.depDic)
                         newDic=[];
                         for (let key in this.depDic){
                             let tmpDic={};
@@ -481,6 +555,26 @@
                         }
                         this.depDic=newDic;
                         //    依赖关系json处理完毕
+                        //  所有许可证
+                        if(respon.data["Local"]!=null){
+                            for (let each of respon.data["Local"]){
+                                let tmpDic={};
+                                tmpDic["path"]=each["Path"];
+                                tmpDic["license"]=each["License"];
+                                this.licenseDic.push(tmpDic);
+                            }
+                        }
+                        //    pomlicense
+                        if(respon.data["PomLicense"]!=null){
+                            for (let each of respon.data["PomLicense"] ){
+                                let tmpDic={};
+                                tmpDic["artifactID"]=each["ArtifactID"];
+                                tmpDic["license"]=each["License"];
+                                this.pomLicenseDic.push(tmpDic);
+                            }
+                        }
+
+
                         //    处理本地冲突
                         if(respon.data["LocalConflicts"]!=null){
                             let loc_confl=respon.data["LocalConflicts"];
@@ -517,7 +611,7 @@
 
                     }
                     else if (respon.data["IsFinish"]==false ){
-                        mode=4;
+                        this.mode=4;
                     }
                 })
             }
@@ -528,14 +622,15 @@
             proj_conflict,
             missing_license,
             upload_file,
-            inquire
+            inquire,
+            all_license
         },
 
         created() {
-            this.getDepsConflictDic();
-            this.getDepDic();
-            this.getProjConflictDic();
-            this.getMissingDic();
+            // this.getDepsConflictDic();
+            // this.getDepDic();
+            // this.getProjConflictDic();
+            // this.getMissingDic();
             // this.getTestdata();
 
 
