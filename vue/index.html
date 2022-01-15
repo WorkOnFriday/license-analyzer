@@ -522,7 +522,7 @@
             },
             getTestdata(id){
                 instance.get("/task/?id="+id)
-                    // instance.get("./json/test.json")
+                //     instance.get("./json/test.json")
                     .then((respon)=> {
                     this.depDic={};
                     this.depsConflictDic=[];
@@ -568,8 +568,10 @@
                         if(respon.data["PomLicense"]!=null){
                             for (let each of respon.data["PomLicense"] ){
                                 let tmpDic={};
+                                tmpDic["groupID"]=each["GroupID"];
                                 tmpDic["artifactID"]=each["ArtifactID"];
                                 tmpDic["license"]=each["License"];
+                                tmpDic["version"]=each["Version"];
                                 this.pomLicenseDic.push(tmpDic);
                             }
                         }
