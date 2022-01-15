@@ -233,13 +233,27 @@ func TestPomScan(t *testing.T) {
 	})
 }
 
-func TestScanFile(t *testing.T) {
-	t.Run("TestScanFile", func(t *testing.T) {
-		convey.Convey("Test1", t, func() {
-			filePath := "D:\\gopath\\src\\license-analyzer\\testFile\\EUPL.txt"
-			license := ScanFile(filePath)
-			fmt.Printf("license %+v\n", license)
-			convey.So(license, convey.ShouldEqual, "EUROPEAN UNION PUBLIC LICENCE V. 1.1")
+func TestScanLicenseFile(t *testing.T) {
+	const basePath = "..\\testFile\\"
+	testCases := []struct {
+		name            string
+		fileName        string
+		expectedLicense string
+	}{
+		{"EUPL", "EUPL.txt", "EUROPEAN UNION PUBLIC LICENCE V. 1.1"},
+		{"GPL-2.0", "GPLv2.txt", "GENERAL PUBLIC LICENSE Version 2"},
+		{"GPL-3.0", "GPLv3.txt", "GENERAL PUBLIC LICENSE Version 3"},
+		{"LGPL-3.0", "lgpl-3.0.txt", "LESSER GENERAL PUBLIC LICENSE Version 3"},
+		{"Ms-RL", "Ms-RL.txt", "MICROSOFT RECIPROCAL LICENSE"},
+	}
+	for _, testCase := range testCases {
+		t.Run("TestScanFile_"+testCase.name, func(t *testing.T) {
+			convey.Convey("Test", t, func() {
+				filePath := basePath + testCase.fileName
+				license := ScanFile(filePath)
+				fmt.Printf("license %+v\n", license)
+				convey.So(license, convey.ShouldEqual, testCase.expectedLicense)
+			})
 		})
-	})
+	}
 }

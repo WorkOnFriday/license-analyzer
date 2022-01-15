@@ -15,8 +15,8 @@ func SetRouterAndRun() {
 	// 为 multipart forms 设置内存限制字节数 (默认是 32 MiB)
 	router.MaxMultipartMemory = 256 << 20
 
-	router.POST("/task", controller.SubmitScanTask)
-	router.GET("/task", controller.GetTaskResult)
+	router.POST("/task/", controller.SubmitScanTask)
+	router.GET("/task/", controller.GetTaskResult)
 
 	logrus.Debugln("set router")
 

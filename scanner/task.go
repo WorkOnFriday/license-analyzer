@@ -188,7 +188,7 @@ func startTaskQueue() {
 					otherLicenses = append(otherLicenses, LicenseLongNameToShort(jarPackage.License))
 
 					for _, license := range local {
-						if !strings.HasPrefix(module.Name, filepath.Dir(license.Path)) {
+						if module.Name != filepath.Dir(license.Path) {
 							continue
 						}
 						// 模块在项目中许可证的范围内
