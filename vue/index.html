@@ -341,14 +341,12 @@
                 // axios.post("./", param, config,maxPostSize=0)
 
                 // import qs from './js/qs.js'
-                axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
-                let data = Qs.stringify(param)
+                axios.defaults.headers.post['Content-Type'] = 'multipart/form-data';
                 axios({
-                    url:'./',
-                      method:'post',
-                      data:data
-
-                      })
+                    url: '/task/',
+                    method: 'post',
+                    data: param
+                })
 
                     .then((response)=>{
                         console.log(response);
