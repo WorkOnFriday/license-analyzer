@@ -34,11 +34,12 @@
         <dep_info :dep_dic="depDic"></dep_info>
         <deps_conflict :deps_conflict_dic="depsConflictDic"></deps_conflict>
         <proj_conflict :proj_conflict_dic="projConflictDic"></proj_conflict>
+        <missing_license :missing_dic="missingDic" :mode="mode"></missing_license>
 
     </div>
 
     <div v-if="mode==3">
-        <missing_license :missing_dic="missingDic"></missing_license>
+        <missing_license :missing_dic="missingDic" :mode="mode"></missing_license>
     </div>
 
     <div v-if="mode==4">
@@ -81,7 +82,7 @@
                   <div class="row">
                     <div>
 
-                      <div v-for=" (dep,index) in dep_dic" class="col-md-4  card">
+                      <div v-for=" (dep,index) in dep_dic" class="col-md-6  card">
 
                         <div class="pricing-table mb30">
                           <div class="price-header">
@@ -132,7 +133,7 @@
                   <div class="row">
                     <div>
 
-                      <div v-for=" (conflict,index) in deps_conflict_dic" class="col-md-4">
+                      <div v-for=" (conflict,index) in deps_conflict_dic" class="col-md-6">
 
                         <div class="pricing-table mb30 " style="height: 400px;overflow: hidden !important;">
                           <h4 >冲突[{{index+1}}]</h4>
@@ -143,8 +144,8 @@
                           <div class="price-body text-left  test test-1 " >
 <!--                            <div class="scrollbar"></div>-->
                             <ul>
-                              <li><span style="display:inline-block;font-weight: bold;width: 10em; ">{{conflict.pack}}</span>: {{conflict.licenseOne}}</li>
-                              <li><span style="display:inline-block;font-weight: bold;width: 10em;">{{conflict.dependency}}</span>: {{conflict.licenseTwo}}</li>
+                              <li><span style="font-weight: bold ">{{conflict.pack}}</span>: {{conflict.licenseOne}}</li>
+                              <li><span style="font-weight: bold">{{conflict.dependency}}</span>: {{conflict.licenseTwo}}</li>
                               <li><span style="font-weight: bold">冲突信息：</span>{{conflict.conflictInfo}}</li>
                             </ul>
 
@@ -190,7 +191,7 @@
                   <div class="row">
                     <div>
 
-                      <div v-for=" (conflict,index) in proj_conflict_dic" class="col-md-4">
+                      <div v-for=" (conflict,index) in proj_conflict_dic" class="col-md-6">
 
                         <div class="pricing-table mb30 " style="height: 400px;overflow: hidden !important;">
                           <h4 >冲突[{{index+1}}]</h4>
@@ -198,8 +199,8 @@
 
                           <div class="price-body text-left  test test-1 " >
                             <ul>
-                              <li><span style="display:inline-block;font-weight: bold;width: 10em; ">{{conflict.packOne}}</span>: {{conflict.licenseOne}}</li>
-                              <li><span style="display:inline-block;font-weight: bold;width: 10em;">{{conflict.packTwo}}</span>: {{conflict.licenseTwo}}</li>
+                              <li><span style="font-weight: bold; ">{{conflict.packOne}}</span>: {{conflict.licenseOne}}</li>
+                              <li><span style="font-weight: bold;">{{conflict.packTwo}}</span>: {{conflict.licenseTwo}}</li>
                               <li><span style="font-weight: bold">冲突信息：</span>{{conflict.conflictInfo}}</li>
                             </ul>
 
@@ -217,7 +218,7 @@
           </div>
           </div>
           <div v-else>
-          <h2>无项目中冲突</h2>
+
           </div>
         `,
         props:['proj_conflict_dic']
@@ -233,8 +234,9 @@
 
                   <div class="row">
                     <div class="col-xs-12">
-                      <div class="area-heading text-center">
-                        <h2 class="area-title">该项目缺少许可证</h2>
+                      <div class="area-heading text-center" >
+                        <h2 class="area-title" v-if="mode==3">该项目缺少许可证</h2>
+                        <h2 class="area-title" v-if="mode==2">推荐许可证</h2>
                       </div>
                     </div>
                   </div>
@@ -247,9 +249,9 @@
                           <h4 >推荐许可证</h4>
                           <hr>
 
-                          <div class="price-body text-left  test test-1 " >
+                          <div class="price-body text-left   " >
                             <ul>
-                              <li ><span style="font-weight: bold;">缺失项目名:</span>: {{missing_dic[0].missingPackage}}</li>
+<!--                              <li ><span style="font-weight: bold;">缺失项目名:</span>: {{missing_dic[0].missingPackage}}</li>-->
                               <li v-for="(recommend,idx) in missing_dic[0].recommends"><span style="font-weight: bold">推荐许可证{{idx+1}}:</span>{{recommend}}</li>
                             </ul>
 
@@ -267,10 +269,10 @@
           </div>
           </div>
           <div v-else>
-          <h2>无项目中冲突</h2>
+
           </div>
         `,
-        props: ['missing_dic']
+        props: ['missing_dic','mode']
     }
 
     //上传文件组件
@@ -341,20 +343,18 @@
                 // axios.post("./", param, config,maxPostSize=0)
 
                 // import qs from './js/qs.js'
-                axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
-                let data = Qs.stringify(param)
+                axios.defaults.headers.post['Content-Type'] = 'multipart/form-data';
                 axios({
-                    url:'./',
-                      method:'post',
-                      data:data
-
-                      })
-
+                    url: '/task/',
+                    method: 'post',
+                    data: param
+                })
                     .then((response)=>{
                         console.log(response);
                         this.is_upload=false;
                         if(response.status==200){
                         //    获取查询码
+                            console.log(response);
                             this.hash='(获取到的查询码)';
                             console.log(this.hash);
                         }
@@ -401,16 +401,16 @@
         },
         methods:{
             quire(){
-                console.log("返回查询号：",this.inquire_num,"给后端");
-                if(this.inquire_num.length>1){
-                    //未出现缺失的情况 mode=2
-                    app.mode=2;
-                }
-                else {
-                    //未查询的情况 mode=1
-                    app.mode=1;
-                }
-            //    出现缺失的情况 mode=3
+                app.getTestdata(this.inquire_num);
+                // if(this.inquire_num.length>1){
+                //     //未出现缺失的情况 mode=2
+                //     app.mode=2;
+                // }
+                // else {
+                //     //未查询的情况 mode=1
+                //     app.mode=1;
+                // }
+            //    出现缺失的情况 mode=3   该部分没添加
             //    检测未完成 mode=4
             }
         }
@@ -447,6 +447,78 @@
             },
             getMissingDic(){
                 instance.get("json/missingDemo.json").then(respon => this.missingDic=respon.data);
+            },
+            getTestdata(id){
+                instance.get("/task/?id="+id).then((respon)=> {
+                    this.depDic={};
+                    this.depsConflictDic=[];
+                    this.projConflictDic=[];
+                    this.missingDic=[];
+                    if (respon.data["IsFinish"]==true ){
+                        this.mode=2;
+                        //处理依赖关系
+                        pro_depend=respon.data["Dependency"]["Project"];
+                        for (let pro of pro_depend){
+                            if (pro["Dependencies"]!=null){
+                                if (this.depDic[pro["Name"]]){
+                                    this.depDic[pro["Name"]].push(pro["Dependencies"]);
+                                }
+                                else{
+                                    this.depDic[pro["Name"]]=[];
+                                    this.depDic[pro["Name"]].push(pro["Dependencies"]);
+                                }
+                            }
+                        }
+                        console.log(this.depDic)
+                        newDic=[];
+                        for (let key in this.depDic){
+                            let tmpDic={};
+                            console.log(key);
+                            tmpDic["package"]=key;
+                            tmpDic["dependency"]=this.depDic[key];
+                            newDic.push(tmpDic);
+                        }
+                        this.depDic=newDic;
+                        //    依赖关系json处理完毕
+                        //    处理本地冲突
+                        if(respon.data["LocalConflicts"]!=null){
+                            let loc_confl=respon.data["LocalConflicts"];
+                            for( let conflict of loc_confl){
+                                let tmpDic={};
+                                tmpDic["pack"]=conflict["MainLicense"]["Path"];
+                                tmpDic["licenseOne"]=conflict["MainLicense"]["License"];
+                                tmpDic["dependency"]=conflict["ExternalLicense"]["Path"];
+                                tmpDic["licenseTwo"]=conflict["ExternalLicense"]["License"];
+                                tmpDic["conflictInfo"]=conflict["Result"]["Message"];
+                                this.depsConflictDic.push(tmpDic);
+                            }
+                        }
+                        //  处理项目冲突
+                        if(respon.data["ExternalConflicts"]!=null){
+                            let ext_confl=respon.data["LocalConflicts"];
+                            for( let conflict of ext_confl){
+                                let tmpDic={};
+                                tmpDic["pack"]=conflict["MainLicense"]["Path"];
+                                tmpDic["licenseOne"]=conflict["MainLicense"]["License"];
+                                tmpDic["dependency"]=conflict["ExternalLicense"]["Path"];
+                                tmpDic["licenseTwo"]=conflict["ExternalLicense"]["License"];
+                                tmpDic["conflictInfo"]=conflict["Result"]["Message"];
+                                this.projConflictDic.push(tmpDic);
+                            }
+                        }
+                        //    推荐许可证
+                        if(respon.data["RecommendLicenses"]!=null) {
+                            let tmpDic = {};
+                            tmpDic["missingPackage"] = "";
+                            tmpDic["recommends"] = respon.data["RecommendLicenses"];
+                            this.missingDic.push(tmpDic);
+                        }
+
+                    }
+                    else if (respon.data["IsFinish"]==false ){
+                        mode=4;
+                    }
+                })
             }
         },
         components: {
@@ -463,6 +535,7 @@
             this.getDepDic();
             this.getProjConflictDic();
             this.getMissingDic();
+            // this.getTestdata();
 
 
 
