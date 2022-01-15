@@ -593,14 +593,14 @@
                         }
                         //  处理项目冲突
                         if(respon.data["ExternalConflicts"]!=null){
-                            let ext_confl=respon.data["LocalConflicts"];
-                            for( let conflict of ext_confl){
+                            let ext_confl=respon.data["ExternalConflicts"];
+                            for( let conflict in ext_confl){
                                 let tmpDic={};
-                                tmpDic["pack"]=conflict["MainLicense"]["Path"];
-                                tmpDic["licenseOne"]=conflict["MainLicense"]["License"];
-                                tmpDic["dependency"]=conflict["ExternalLicense"]["Path"];
-                                tmpDic["licenseTwo"]=conflict["ExternalLicense"]["License"];
-                                tmpDic["conflictInfo"]=conflict["Result"]["Message"];
+                                tmpDic["pack"]=ext_confl[conflict]["MainLicense"]["Path"];
+                                tmpDic["licenseOne"]=ext_confl[conflict]["MainLicense"]["License"];
+                                tmpDic["dependency"]=ext_confl[conflict]["ExternalLicense"]["Path"];
+                                tmpDic["licenseTwo"]=ext_confl[conflict]["ExternalLicense"]["License"];
+                                tmpDic["conflictInfo"]=ext_confl[conflict]["Result"]["Message"];
                                 this.projConflictDic.push(tmpDic);
                             }
                         }
