@@ -521,7 +521,7 @@
                             //处理依赖关系
                             pro_depend = respon.data["Dependency"]["Project"];
                             for (let pro in pro_depend) {
-                                if (pro["Dependencies"] != null) {
+                                if (pro_depend[pro]["Dependencies"] != null) {
                                     if (this.depDic[pro_depend[pro]["Name"]]) {
                                         this.depDic[pro_depend[pro]["Name"]].push(pro_depend[pro]["Dependencies"]);
                                     } else {
