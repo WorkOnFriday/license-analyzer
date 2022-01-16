@@ -1639,7 +1639,7 @@ body:not(.header-fixed) .fullscreen-menu-toggle {
   background-color: #f4f4f4;
 }
 .price {
-  font-size: 44px;
+  font-size: 25px;
   line-height: 1em;
   margin-top: 15px;
   margin-bottom: 5px;
