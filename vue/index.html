@@ -594,11 +594,11 @@
                             }
                             //处理依赖关系
                             pro_depend = respon.data["Dependency"]["Project"];
-                            console.log(pro_depend);
+                            //console.log(pro_depend);
                             pro_depend=[pro_depend];
 
-                            for (let pro in pro_depend) {
-                                if (pro_depend[pro]["Dependencies"] != null) {
+                            for  (let pro in pro_depend) {
+                                if  (pro_depend[pro]["Dependencies"] != null) {
                                     if (this.depDic[pro_depend[pro]["Name"]]) {
                                         this.depDic[pro_depend[pro]["Name"]].push(pro_depend[pro]["Dependencies"]);
                                     } else {
@@ -623,8 +623,8 @@
                             //    依赖关系json处理完毕
                             //  所有许可证
                             if (respon.data["Local"] != null) {
-                                let loc = respon.data["Local"];
-                                for (let each in loc) {
+                                let  loc = respon.data["Local"];
+                                for  (let each in loc) {
                                     let tmpDic = {};
                                     tmpDic["path"] = loc[each]["Path"];
                                     tmpDic["license"] = loc[each]["License"];
@@ -644,7 +644,7 @@
                                 }
                             }
                             //    处理本地冲突
-                            if (respon.data["LocalConflicts"] != null) {
+                            if  (respon.data["LocalConflicts"] != null) {
                                 let loc_confl = respon.data["LocalConflicts"];
                                 for (let conflict in loc_confl) {
                                     let tmpDic = {};
@@ -657,7 +657,7 @@
                                 }
                             }
                             //  处理项目冲突
-                            if (respon.data["ExternalConflicts"] != null) {
+                            if  (respon.data["ExternalConflicts"] != null) {
                                 let ext_confl = respon.data["ExternalConflicts"];
                                 for (let conflict in ext_confl) {
                                     let tmpDic = {};
@@ -670,7 +670,7 @@
                                 }
                             }
                             //  处理pom冲突
-                            if (respon.data["PomConflicts"] != null) {
+                            if  (respon.data["PomConflicts"] != null) {
                                 let pom_confl = respon.data["PomConflicts"];
                                 for (let conflict in pom_confl) {
                                     let tmpDic = {};
