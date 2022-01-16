@@ -223,7 +223,7 @@ type AllModuleDependency struct {
 	Modules []UnitDependency
 }
 
-func dependencyAnalyze(externalModules []JarPackage, local []PathLicense) (all AllModuleDependency) {
+func dependencyAnalyze(externalModules []JarPackage, local []PathLicense) (all AllModuleDependency, isLicenseMiss bool) {
 	// 字符串去重
 	uniqueString := func(strings []string) (result []string) {
 		existMap := make(map[string]bool)
@@ -302,6 +302,11 @@ func dependencyAnalyze(externalModules []JarPackage, local []PathLicense) (all A
 		projectDependencies = append(projectDependencies, md.Dependencies...)
 	}
 	projectDependencies = uniqueJarPackage(projectDependencies)
+
+	// 项目许可证缺失
+	if projectName == "" {
+		isLicenseMiss = true
+	}
 	all.Project = UnitDependency{Name: projectName, Dependencies: projectDependencies}
 	return
 }

@@ -35,6 +35,7 @@ type TaskResult struct {
 	IsFinish          bool
 	ErrorMessage      string
 	Local             []PathLicense
+	IsLicenseMiss     bool // 项目许可证是否缺失
 	Dependency        AllModuleDependency
 	PomLicense        []PomLicense
 	LocalConflicts    []ExternalConflict
@@ -119,9 +120,14 @@ func startTaskQueue() {
 			allLocalModule := findAllLocalModule(local)
 			logrus.Debugf("all local modules: %+v", allLocalModule)
 
-			// 得到项目本身每个包对jar包的依赖
-			dependency := dependencyAnalyze(findAllExternalModule(external), local)
+			// 得到项目本身每个包对jar包的依赖 和 整个项目的许可证是否缺失
+			dependency, isLicenseMiss := dependencyAnalyze(findAllExternalModule(external), local)
 			logrus.Debugf("dependency result: %+v", dependency)
+
+			// 生成项目名：压缩包不含扩展名的文件名
+			taskFileName := filepath.Base(task.FullPath)
+			projectName := taskFileName[0 : len(taskFileName)-len(filepath.Ext(taskFileName))]
+			dependency.Project.Name = projectName
 
 			// 得到pom.xml定义的外部依赖
 			packageFileName := filepath.Base(task.FullPath)
@@ -238,6 +244,7 @@ func startTaskQueue() {
 				IsFinish:          true,
 				ErrorMessage:      "",
 				Local:             local,
+				IsLicenseMiss:     isLicenseMiss,
 				Dependency:        dependency,
 				PomLicense:        pomLicenses,
 				LocalConflicts:    localConflicts,
