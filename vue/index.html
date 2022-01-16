@@ -32,11 +32,12 @@
 
     <div v-if="mode==2">
         <all_license :license_dic="licenseDic" :pom_dic="pomLicenseDic"></all_license>
-        <dep_info :dep_dic="depDic"></dep_info>
+        <dep_info :dep_dic="depDic" :Name="projectName"></dep_info>
+        <missing_license :missing_dic="missingDic" :mode="mode"></missing_license>
         <deps_conflict :deps_conflict_dic="depsConflictDic"></deps_conflict>
         <proj_conflict :proj_conflict_dic="projConflictDic"></proj_conflict>
         <pom_conflict :pom_conflict_dic="pomConflictDic"></pom_conflict>
-        <missing_license :missing_dic="missingDic" :mode="mode"></missing_license>
+
 
 
     </div>
@@ -44,9 +45,10 @@
     <div v-if="mode==3">
         <all_license :license_dic="licenseDic" :pom_dic="pomLicenseDic"></all_license>
         <dep_info :dep_dic="depDic"></dep_info>
+        <missing_license :missing_dic="missingDic" :mode="mode"></missing_license>
         <deps_conflict :deps_conflict_dic="depsConflictDic"></deps_conflict>
         <proj_conflict :proj_conflict_dic="projConflictDic"></proj_conflict>
-        <missing_license :missing_dic="missingDic" :mode="mode"></missing_license>
+
     </div>
 
     <div v-if="mode==4">
@@ -87,16 +89,16 @@
                   <div class="row">
                     <div>
 
-                      <div v-for=" (dep,index) in dep_dic" class="col-md-6  card">
+                      <div  class="col-md-6 col-md-offset-3  card">
 
                         <div class="pricing-table mb30">
                           <div class="price-header">
-                            <span class="price">{{ dep.package }}</span>
+                            <span class="price">{{ Name }}</span>
                           </div>
                           <hr>
                           <div class="price-body">
                             <ul>
-                              <li v-for="each_dep in dep.dependency">{{ each_dep }}</li>
+                              <li v-for="i in dep_dic.length">{{dep_dic[i-1]}}</li>
                             </ul>
                           </div>
                         </div>
@@ -116,7 +118,7 @@
         data() {
             return {}
         },
-        props: ['dep_dic']
+        props: ['dep_dic','Name']
 
     };
     //与依赖间冲突组件
@@ -568,15 +570,16 @@
             licenseDic: '',
             testData: "测试",
             mode: 1,
+            projectName:'',
             IsLicenseMiss: false
 
         },
         methods: {
             getTestdata(id) {
-                instance.get("/task/?id="+id)
-                // instance.get("./json/test.json")
+                // instance.get("/task/?id="+id)
+                instance.get("./json/test.json")
                     .then((respon) => {
-                        this.depDic = {};
+                        this.depDic = [];
                         this.depsConflictDic = [];
                         this.projConflictDic = [];
                         this.missingDic = [];
@@ -592,30 +595,23 @@
                                 this.mode = 2;
                             }
                             //处理依赖关系
-                            pro_depend = respon.data["Dependency"]["Project"];
-                            console.log(pro_depend);
 
-                            for (let pro in pro_depend) {
-                                if (pro_depend[pro]["Dependencies"] != null) {
-                                    if (this.depDic[pro_depend[pro]["Name"]]) {
-                                        this.depDic[pro_depend[pro]["Name"]].push(pro_depend[pro]["Dependencies"]);
-                                    } else {
-                                        this.depDic[pro_depend[pro]["Name"]] = [];
-                                        this.depDic[pro_depend[pro]["Name"]].push(pro_depend[pro]["Dependencies"]);
+                            if(respon.data["Dependency"]["Project"]!=null){
+                                let pro=respon.data["Dependency"]["Project"];
+                                this.projectName=pro["Name"];
+                                let deps=pro["Dependencies"];
+                                for (let dep in deps){
+
+                                    if (deps[dep]["Path"])
+                                    {
+                                        let pa_list=deps[dep]["Path"].split("/");
+                                        let idx=pa_list.length-1;
+                                        let jar=pa_list[idx];
+                                        this.depDic.push(jar)
                                     }
+
                                 }
-
                             }
-                            newDic = [];
-                            for (let key in this.depDic) {
-                                let tmpDic = {};
-                                console.log(key);
-                                tmpDic["package"] = key;
-                                tmpDic["dependency"] = this.depDic[key];
-                                newDic.push(tmpDic);
-                            }
-                            this.depDic = newDic;
-
 
 
                             //    依赖关系json处理完毕
