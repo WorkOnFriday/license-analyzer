@@ -576,6 +576,7 @@
                 instance.get("/task/?id="+id)
                 // instance.get("./json/test.json")
                     .then((respon) => {
+                        console.log(respon["data"]);
                         this.depDic = {};
                         this.depsConflictDic = [];
                         this.projConflictDic = [];
@@ -594,6 +595,7 @@
                             //处理依赖关系
                             pro_depend = respon.data["Dependency"]["Project"];
                             console.log(pro_depend);
+                            pro_depend=[pro_depend];
 
                             for (let pro in pro_depend) {
                                 if (pro_depend[pro]["Dependencies"] != null) {
