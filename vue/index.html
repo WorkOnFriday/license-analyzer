@@ -258,7 +258,7 @@
                           <div class="price-body  test test-1 ">
                             <ul>
                               <!--                              <li ><span style="font-weight: bold;">缺失项目名:</span>: {{missing_dic[0].missingPackage}}</li>-->
-                              <li v-for="(recommend,idx) in missing_dic[0].recommends">{{ recommend }}</li>
+                              <li style="width: 480px" v-for="(recommend,idx) in missing_dic[0].recommends">{{ recommend }}</li>
                             </ul>
 
                           </div>
@@ -576,14 +576,14 @@
                             //    处理本地冲突
                             if (respon.data["LocalConflicts"] != null) {
                                 let loc_confl = respon.data["LocalConflicts"];
-                                for (let conflict of loc_confl) {
+                                for (let conflict in loc_confl) {
                                     let tmpDic = {};
-                                    tmpDic["pack"] = conflict["MainLicense"]["Path"];
-                                    tmpDic["licenseOne"] = conflict["MainLicense"]["License"];
-                                    tmpDic["dependency"] = conflict["ExternalLicense"]["Path"];
-                                    tmpDic["licenseTwo"] = conflict["ExternalLicense"]["License"];
-                                    tmpDic["conflictInfo"] = conflict["Result"]["Message"];
-                                    this.depsConflictDic.push(tmpDic);
+                                    tmpDic["packOne"] = loc_confl[conflict]["MainLicense"]["Path"];
+                                    tmpDic["licenseOne"] = loc_confl[conflict]["MainLicense"]["License"];
+                                    tmpDic["packTwo"] = loc_confl[conflict]["ExternalLicense"]["Path"];
+                                    tmpDic["licenseTwo"] = loc_confl[conflict]["ExternalLicense"]["License"];
+                                    tmpDic["conflictInfo"] = loc_confl[conflict]["Result"]["Message"];
+                                    this.projConflictDic.push(tmpDic);
                                 }
                             }
                             //  处理项目冲突
@@ -591,12 +591,12 @@
                                 let ext_confl = respon.data["ExternalConflicts"];
                                 for (let conflict in ext_confl) {
                                     let tmpDic = {};
-                                    tmpDic["packOne"] = ext_confl[conflict]["MainLicense"]["Path"];
+                                    tmpDic["pack"] = ext_confl[conflict]["MainLicense"]["Path"];
                                     tmpDic["licenseOne"] = ext_confl[conflict]["MainLicense"]["License"];
-                                    tmpDic["packTwo"] = ext_confl[conflict]["ExternalLicense"]["Path"];
+                                    tmpDic["dependency"] = ext_confl[conflict]["ExternalLicense"]["Path"];
                                     tmpDic["licenseTwo"] = ext_confl[conflict]["ExternalLicense"]["License"];
                                     tmpDic["conflictInfo"] = ext_confl[conflict]["Result"]["Message"];
-                                    this.projConflictDic.push(tmpDic);
+                                    this.depsConflictDic.push(tmpDic);
                                 }
                             }
                             //    推荐许可证
