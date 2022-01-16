@@ -35,13 +35,14 @@
         <dep_info :dep_dic="depDic"></dep_info>
         <deps_conflict :deps_conflict_dic="depsConflictDic"></deps_conflict>
         <proj_conflict :proj_conflict_dic="projConflictDic"></proj_conflict>
-        <pom_conflict  :pom_conflict_dic="pomConflictDic"></pom_conflict>
+        <pom_conflict :pom_conflict_dic="pomConflictDic"></pom_conflict>
         <missing_license :missing_dic="missingDic" :mode="mode"></missing_license>
 
 
     </div>
 
     <div v-if="mode==3">
+        <all_license :license_dic="licenseDic" :pom_dic="pomLicenseDic"></all_license>
         <missing_license :missing_dic="missingDic" :mode="mode"></missing_license>
     </div>
 
@@ -317,7 +318,9 @@
                           <div class="price-body  test test-1 ">
                             <ul>
                               <!--                              <li ><span style="font-weight: bold;">缺失项目名:</span>: {{missing_dic[0].missingPackage}}</li>-->
-                              <li style="width: 480px" v-for="(recommend,idx) in missing_dic[0].recommends">{{ recommend }}</li>
+                              <li style="width: 480px" v-for="(recommend,idx) in missing_dic[0].recommends">
+                                {{ recommend }}
+                              </li>
                             </ul>
 
                           </div>
@@ -556,32 +559,39 @@
             depDic: '',
             depsConflictDic: '',
             projConflictDic: '',
-            pomConflictDic:'',
+            pomConflictDic: '',
             missingDic: '',
             pomLicenseDic: '',
             licenseDic: '',
             testData: "测试",
             mode: 1,
-
+            IsLicenseMiss: false
 
         },
         methods: {
             getTestdata(id) {
-                // instance.get("/task/?id="+id)
-                instance.get("./json/test.json")
+                instance.get("/task/?id="+id)
+                // instance.get("./json/test.json")
                     .then((respon) => {
                         this.depDic = {};
                         this.depsConflictDic = [];
                         this.projConflictDic = [];
                         this.missingDic = [];
                         this.pomLicenseDic = [];
-                        this.pomConflictDic=[];
+                        this.pomConflictDic = [];
                         this.licenseDic = [];     //path=""  license=""
+                        this.IsLicenseMiss = false;
                         if (respon.data["IsFinish"] == true) {
-                            this.mode = 2;
+                            this.IsLicenseMiss = respon.data["IsLicenseMiss"];
+                            if (this.IsLicenseMiss == true) {
+                                this.mode = 3;
+                            } else {
+                                this.mode = 2;
+                            }
                             //处理依赖关系
                             pro_depend = respon.data["Dependency"]["Project"];
-                            pro_depend = [pro_depend];
+                            console.log(pro_depend);
+
                             for (let pro in pro_depend) {
                                 if (pro_depend[pro]["Dependencies"] != null) {
                                     if (this.depDic[pro_depend[pro]["Name"]]) {
@@ -591,6 +601,7 @@
                                         this.depDic[pro_depend[pro]["Name"]].push(pro_depend[pro]["Dependencies"]);
                                     }
                                 }
+
                             }
                             newDic = [];
                             for (let key in this.depDic) {
@@ -601,10 +612,13 @@
                                 newDic.push(tmpDic);
                             }
                             this.depDic = newDic;
+
+
+
                             //    依赖关系json处理完毕
                             //  所有许可证
                             if (respon.data["Local"] != null) {
-                                let loc=respon.data["Local"];
+                                let loc = respon.data["Local"];
                                 for (let each in loc) {
                                     let tmpDic = {};
                                     tmpDic["path"] = loc[each]["Path"];
@@ -614,7 +628,7 @@
                             }
                             //    pomlicense
                             if (respon.data["PomLicense"] != null) {
-                                let pom_lic=respon.data["PomLicense"];
+                                let pom_lic = respon.data["PomLicense"];
                                 for (let each in pom_lic) {
                                     let tmpDic = {};
                                     tmpDic["groupID"] = pom_lic[each]["GroupID"];
