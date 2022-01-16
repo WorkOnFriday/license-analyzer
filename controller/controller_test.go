@@ -523,6 +523,153 @@ var testCaseScannerTest7 = TestCase{
 		RecommendLicenses: nil,
 	},
 }
+var testCaseScannerTest8 = TestCase{
+	name:     "ScannerTest8",
+	filePath: "..\\testProject\\ScannerTest8.zip",
+	expectedResult: scanner.TaskResult{
+		IsFinish:     true,
+		ErrorMessage: "",
+		Local: []scanner.PathLicense{
+			{
+				Path:    "ScannerTest8\\LICENSE",
+				License: "LESSER GENERAL PUBLIC LICENSE Version 3",
+			},
+			{
+				Path:    "ScannerTest8\\src\\main\\LICENSE",
+				License: "GENERAL PUBLIC LICENSE Version 2",
+			},
+		},
+		Dependency: scanner.AllModuleDependency{
+			Project: scanner.UnitDependency{
+				Name:         "ScannerTest8",
+				Dependencies: nil,
+			},
+			Modules: []scanner.UnitDependency{
+				{
+					Name:         "ScannerTest8",
+					Dependencies: nil,
+				},
+				{
+					Name:         "ScannerTest8\\src\\main",
+					Dependencies: nil,
+				},
+			},
+		},
+		PomLicense: []scanner.PomLicense{
+			{
+				XMLDependency: scanner.XMLDependency{
+					GroupID:    "com.google.code.gson",
+					ArtifactID: "gson",
+					Version:    "2.8.9",
+				},
+				License: "Apache-2.0",
+			},
+		},
+		LocalConflicts: []scanner.ExternalConflict{
+			{
+				MainLicense: scanner.PathLicense{
+					Path:    "ScannerTest8\\LICENSE",
+					License: "LESSER GENERAL PUBLIC LICENSE Version 3",
+				},
+				ExternalLicense: scanner.PathLicense{
+					Path:    "ScannerTest8\\src\\main\\LICENSE",
+					License: "GENERAL PUBLIC LICENSE Version 2",
+				},
+				Result: scanner.ConflictResult{
+					Unknown: false,
+					Pass:    false,
+					Message: "冲突, 组合遵循GPL-2.0-or-later",
+				},
+			},
+		},
+		ExternalConflicts: nil,
+		PomConflicts:      nil,
+		RecommendLicenses: []string{
+			"GPL-2.0-or-later",
+			"GPL-3.0-only",
+			"AGPL-3.0-only",
+			"Apache-2.0",
+			"ECL-2.0",
+		},
+	},
+}
+
+var testCaseScannerTest9 = TestCase{
+	name:     "ScannerTest9",
+	filePath: "..\\testProject\\ScannerTest9.zip",
+	expectedResult: scanner.TaskResult{
+		IsFinish:     true,
+		ErrorMessage: "",
+		Local: []scanner.PathLicense{
+			{
+				Path:    "ScannerTest9\\LICENSE",
+				License: "GENERAL PUBLIC LICENSE Version 3",
+			},
+			{
+				Path:    "ScannerTest9\\src\\main\\LICENSE",
+				License: "LESSER GENERAL PUBLIC LICENSE Version 3",
+			},
+		},
+		Dependency: scanner.AllModuleDependency{
+			Project: scanner.UnitDependency{
+				Name:         "ScannerTest9",
+				Dependencies: nil,
+			},
+			Modules: []scanner.UnitDependency{
+				{
+					Name:         "ScannerTest9",
+					Dependencies: nil,
+				},
+				{
+					Name:         "ScannerTest9\\src\\main",
+					Dependencies: nil,
+				},
+			},
+		},
+		PomLicense: []scanner.PomLicense{
+			{
+				XMLDependency: scanner.XMLDependency{
+					GroupID:    "com.google.code.gson",
+					ArtifactID: "gson",
+					Version:    "2.8.9",
+				},
+				License: "Apache-2.0",
+			},
+		},
+		LocalConflicts:    nil,
+		ExternalConflicts: nil,
+		PomConflicts:      nil,
+		RecommendLicenses: []string{
+			"LGPL-2.1-only",
+			"LGPL-2.1-or-later",
+			"LGPL-3.0-only",
+			"GPL-3.0-only",
+			"AGPL-3.0-only",
+			"Artistic-2.0",
+			"CECILL-2.1",
+			"EPL-1.0",
+			"EPL-2.0",
+			"EUPL-1.1",
+			"EUPL-1.2",
+			"MPL-2.0",
+			"MS-RL",
+			"OSL-3.0",
+			"Vim",
+			"CDDL-1.0",
+			"CPAL-1.0",
+			"CPL-1.0",
+			"IPL-1.0",
+			"LPL-1.02",
+			"Nokia",
+			"RPSL-1.0",
+			"SISSL",
+			"Sleepycat",
+			"SPL-1.0",
+			"Apache-2.0",
+			"ECL-2.0",
+		},
+	},
+}
 
 func TestSubmitScanTaskAndGetTaskResult(t *testing.T) {
 	// 设置全局日志(输出接下来操作的错误信息)
@@ -549,6 +696,8 @@ func TestSubmitScanTaskAndGetTaskResult(t *testing.T) {
 		testCaseScannerTest5,
 		testCaseScannerTest6,
 		testCaseScannerTest7,
+		testCaseScannerTest8,
+		testCaseScannerTest9,
 	}
 
 	for i, testCase := range testCases {
