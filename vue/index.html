@@ -35,6 +35,7 @@
         <dep_info :dep_dic="depDic"></dep_info>
         <deps_conflict :deps_conflict_dic="depsConflictDic"></deps_conflict>
         <proj_conflict :proj_conflict_dic="projConflictDic"></proj_conflict>
+        <pom_conflict  :pom_conflict_dic="pomConflictDic"></pom_conflict>
         <missing_license :missing_dic="missingDic" :mode="mode"></missing_license>
 
 
@@ -117,7 +118,7 @@
     //与依赖间冲突组件
     const deps_conflict = {
         template: `
-          <div class="stickyfooter header-fixed">
+          <div class="stickyfooter header-fixed" v-if="deps_conflict_dic.length!=0">
           <div class="content">
             <main>
               <section class="pricing-area  pb30">
@@ -229,6 +230,64 @@
         `,
         props: ['proj_conflict_dic']
     }
+
+    //pom冲突
+    const pom_conflict = {
+        template: `
+          <div class="stickyfooter header-fixed" v-if="pom_conflict_dic.length!=0">
+          <div class="content">
+            <main>
+              <section class="pricing-area  pb30">
+                <div class="container">
+
+                  <div class="row">
+                    <div class="col-xs-12">
+                      <div class="area-heading text-center">
+                        <h2 class="area-title">pom冲突</h2>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div>
+
+                      <div v-for=" (conflict,index) in pom_conflict_dic" class="col-md-6">
+
+                        <div class="pricing-table mb30 " style="height: 400px;overflow: hidden !important;">
+                          <h4>冲突[{{ index + 1 }}]</h4>
+                          <hr>
+
+                          <div class="price-body text-left  test test-1 ">
+                            <ul>
+                              <li><span style="font-weight: bold; ">{{ conflict.packOne }}</span>:
+                                {{ conflict.licenseOne }}
+                              </li>
+                              <li><span style="font-weight: bold;">{{ conflict.packTwo }}</span>:
+                                {{ conflict.licenseTwo }}
+                              </li>
+                              <li><span style="font-weight: bold">冲突信息：</span>{{ conflict.conflictInfo }}</li>
+                            </ul>
+
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+
+                  </div>
+                  <hr style="color: black">
+                </div>
+              </section>
+            </main>
+          </div>
+          </div>
+          <div v-else>
+
+          </div>
+        `,
+        props: ['pom_conflict_dic']
+    }
+
+
     //license缺失&推荐license
     const missing_license = {
         template: `
@@ -497,6 +556,7 @@
             depDic: '',
             depsConflictDic: '',
             projConflictDic: '',
+            pomConflictDic:'',
             missingDic: '',
             pomLicenseDic: '',
             licenseDic: '',
@@ -507,14 +567,15 @@
         },
         methods: {
             getTestdata(id) {
-                instance.get("/task/?id="+id)
-                // instance.get("./json/test.json")
+                // instance.get("/task/?id="+id)
+                instance.get("./json/test.json")
                     .then((respon) => {
                         this.depDic = {};
                         this.depsConflictDic = [];
                         this.projConflictDic = [];
                         this.missingDic = [];
                         this.pomLicenseDic = [];
+                        this.pomConflictDic=[];
                         this.licenseDic = [];     //path=""  license=""
                         if (respon.data["IsFinish"] == true) {
                             this.mode = 2;
@@ -589,6 +650,19 @@
                                     this.depsConflictDic.push(tmpDic);
                                 }
                             }
+                            //  处理pom冲突
+                            if (respon.data["PomConflicts"] != null) {
+                                let pom_confl = respon.data["PomConflicts"];
+                                for (let conflict in pom_confl) {
+                                    let tmpDic = {};
+                                    tmpDic["packOne"] = pom_confl[conflict]["MainLicense"]["Path"];
+                                    tmpDic["licenseOne"] = pom_confl[conflict]["MainLicense"]["License"];
+                                    tmpDic["packTwo"] = pom_confl[conflict]["PomLicense"]["ArtifactID"];
+                                    tmpDic["licenseTwo"] = pom_confl[conflict]["PomLicense"]["License"];
+                                    tmpDic["conflictInfo"] = pom_confl[conflict]["Result"]["Message"];
+                                    this.pomConflictDic.push(tmpDic);
+                                }
+                            }
                             //    推荐许可证
                             if (respon.data["RecommendLicenses"] != null) {
                                 let tmpDic = {};
@@ -606,6 +680,7 @@
             dep_info,
             deps_conflict,
             proj_conflict,
+            pom_conflict,
             missing_license,
             upload_file,
             inquire,
