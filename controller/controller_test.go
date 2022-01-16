@@ -36,6 +36,7 @@ var testCaseScannerTest1 = TestCase{
 				License: "GENERAL PUBLIC LICENSE Version 3",
 			},
 		},
+		IsLicenseMiss: false,
 		Dependency: scanner.AllModuleDependency{
 			Project: scanner.UnitDependency{
 				Name: "ScannerTest1",
@@ -89,6 +90,7 @@ var testCaseScannerTest2 = TestCase{
 				License: "GENERAL PUBLIC LICENSE Version 3",
 			},
 		},
+		IsLicenseMiss: false,
 		Dependency: scanner.AllModuleDependency{
 			Project: scanner.UnitDependency{
 				Name: "ScannerTest2",
@@ -155,6 +157,7 @@ var testCaseScannerTest3 = TestCase{
 				License: "APACHE LICENSE Version 2.0",
 			},
 		},
+		IsLicenseMiss: false,
 		Dependency: scanner.AllModuleDependency{
 			Project: scanner.UnitDependency{
 				Name: "ScannerTest3",
@@ -224,6 +227,7 @@ var testCaseScannerTest4 = TestCase{
 				License: "GENERAL PUBLIC LICENSE Version 2",
 			},
 		},
+		IsLicenseMiss: false,
 		Dependency: scanner.AllModuleDependency{
 			Project: scanner.UnitDependency{
 				Name: "ScannerTest4",
@@ -326,6 +330,7 @@ var testCaseScannerTest5 = TestCase{
 				License: "LESSER GENERAL PUBLIC LICENSE Version 2.1",
 			},
 		},
+		IsLicenseMiss: false,
 		Dependency: scanner.AllModuleDependency{
 			Project: scanner.UnitDependency{
 				Name: "ScannerTest5",
@@ -448,6 +453,7 @@ var testCaseScannerTest6 = TestCase{
 		Local: []scanner.PathLicense{{
 			Path: "ScannerTest6\\LICENSE", License: "GENERAL PUBLIC LICENSE Version 2",
 		}},
+		IsLicenseMiss: false,
 		Dependency: scanner.AllModuleDependency{
 			Project: scanner.UnitDependency{Name: "ScannerTest6", Dependencies: nil},
 			Modules: []scanner.UnitDependency{{Name: "ScannerTest6", Dependencies: nil}},
@@ -479,6 +485,7 @@ var testCaseScannerTest7 = TestCase{
 				License: "APACHE LICENSE Version 2.0",
 			},
 		},
+		IsLicenseMiss: false,
 		Dependency: scanner.AllModuleDependency{
 			Project: scanner.UnitDependency{
 				Name:         "ScannerTest7",
@@ -539,6 +546,7 @@ var testCaseScannerTest8 = TestCase{
 				License: "GENERAL PUBLIC LICENSE Version 2",
 			},
 		},
+		IsLicenseMiss: false,
 		Dependency: scanner.AllModuleDependency{
 			Project: scanner.UnitDependency{
 				Name:         "ScannerTest8",
@@ -610,6 +618,7 @@ var testCaseScannerTest9 = TestCase{
 				License: "LESSER GENERAL PUBLIC LICENSE Version 3",
 			},
 		},
+		IsLicenseMiss: false,
 		Dependency: scanner.AllModuleDependency{
 			Project: scanner.UnitDependency{
 				Name:         "ScannerTest9",
@@ -622,6 +631,76 @@ var testCaseScannerTest9 = TestCase{
 				},
 				{
 					Name:         "ScannerTest9\\src\\main",
+					Dependencies: nil,
+				},
+			},
+		},
+		PomLicense: []scanner.PomLicense{
+			{
+				XMLDependency: scanner.XMLDependency{
+					GroupID:    "com.google.code.gson",
+					ArtifactID: "gson",
+					Version:    "2.8.9",
+				},
+				License: "Apache-2.0",
+			},
+		},
+		LocalConflicts:    nil,
+		ExternalConflicts: nil,
+		PomConflicts:      nil,
+		RecommendLicenses: []string{
+			"LGPL-2.1-only",
+			"LGPL-2.1-or-later",
+			"LGPL-3.0-only",
+			"GPL-3.0-only",
+			"AGPL-3.0-only",
+			"Artistic-2.0",
+			"CECILL-2.1",
+			"EPL-1.0",
+			"EPL-2.0",
+			"EUPL-1.1",
+			"EUPL-1.2",
+			"MPL-2.0",
+			"MS-RL",
+			"OSL-3.0",
+			"Vim",
+			"CDDL-1.0",
+			"CPAL-1.0",
+			"CPL-1.0",
+			"IPL-1.0",
+			"LPL-1.02",
+			"Nokia",
+			"RPSL-1.0",
+			"SISSL",
+			"Sleepycat",
+			"SPL-1.0",
+			"Apache-2.0",
+			"ECL-2.0",
+		},
+	},
+}
+
+var testCaseScannerTest10 = TestCase{
+	name:     "ScannerTest10",
+	filePath: "..\\testProject\\ScannerTest10.zip",
+	expectedResult: scanner.TaskResult{
+		IsFinish:     true,
+		ErrorMessage: "",
+		Local: []scanner.PathLicense{
+			{
+				Path:    "ScannerTest10\\src\\main\\LICENSE",
+				License: "LESSER GENERAL PUBLIC LICENSE Version 3",
+			},
+		},
+		IsLicenseMiss: true,
+		Dependency: scanner.AllModuleDependency{
+			Project: scanner.UnitDependency{
+				Name:         "ScannerTest10",
+				Dependencies: nil,
+			},
+			Modules: []scanner.UnitDependency{
+				{
+					Name:         "ScannerTest10\\src\\main",
 					Dependencies: nil,
 				},
 			},
@@ -698,6 +777,7 @@ func TestSubmitScanTaskAndGetTaskResult(t *testing.T) {
 		testCaseScannerTest7,
 		testCaseScannerTest8,
 		testCaseScannerTest9,
+		testCaseScannerTest10,
 	}
 
 	for i, testCase := range testCases {
