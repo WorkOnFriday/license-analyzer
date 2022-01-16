@@ -62,8 +62,42 @@
       }
     }
   ],
-  "ExternalConflicts": null,
-  "PomConflicts": null,
+  "ExternalConflicts": [
+    {
+      "MainLicense": {
+        "Path": "ScannerTest8\\LICENSE",
+        "License": "LESSER GENERAL PUBLIC LICENSE Version 3"
+      },
+      "ExternalLicense": {
+        "Path": "ScannerTest8\\src\\main\\LICENSE",
+        "License": "GENERAL PUBLIC LICENSE Version 2"
+      },
+      "Result": {
+        "Unknown": false,
+        "Pass": false,
+        "Message": "冲突, 组合遵循GPL-2.0-or-later"
+      }
+    }
+  ],
+  "PomConflicts": [
+    {
+      "MainLicense": {
+        "Path": "ScannerTest7\\LICENSE.txt",
+        "License": "APACHE LICENSE Version 2.0"
+      },
+      "PomLicense": {
+        "GroupID": "org.jboss.aop",
+        "ArtifactID": "jboss-aop",
+        "Version": "2.2.2.GA",
+        "License": "LGPL-2.1"
+      },
+      "Result": {
+        "Unknown": true,
+        "Pass": false,
+        "Message": "分析失败，许可证库不包含对应信息"
+      }
+    }
+  ],
   "RecommendLicenses": [
     "LGPL-2.1-only",
     "LGPL-2.1-or-later",
