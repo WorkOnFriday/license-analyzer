@@ -542,21 +542,23 @@
                             //    依赖关系json处理完毕
                             //  所有许可证
                             if (respon.data["Local"] != null) {
-                                for (let each of respon.data["Local"]) {
+                                let loc=respon.data["Local"];
+                                for (let each in loc) {
                                     let tmpDic = {};
-                                    tmpDic["path"] = each["Path"];
-                                    tmpDic["license"] = each["License"];
+                                    tmpDic["path"] = loc[each]["Path"];
+                                    tmpDic["license"] = loc[each]["License"];
                                     this.licenseDic.push(tmpDic);
                                 }
                             }
                             //    pomlicense
                             if (respon.data["PomLicense"] != null) {
-                                for (let each of respon.data["PomLicense"]) {
+                                let pom_lic=respon.data["PomLicense"];
+                                for (let each in pom_lic) {
                                     let tmpDic = {};
-                                    tmpDic["groupID"] = each["GroupID"];
-                                    tmpDic["artifactID"] = each["ArtifactID"];
-                                    tmpDic["license"] = each["License"];
-                                    tmpDic["version"] = each["Version"];
+                                    tmpDic["groupID"] = pom_lic[each]["GroupID"];
+                                    tmpDic["artifactID"] = pom_lic[each]["ArtifactID"];
+                                    tmpDic["license"] = pom_lic[each]["License"];
+                                    tmpDic["version"] = pom_lic[each]["Version"];
                                     this.pomLicenseDic.push(tmpDic);
                                 }
                             }
