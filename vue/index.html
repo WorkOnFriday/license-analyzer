@@ -43,6 +43,9 @@
 
     <div v-if="mode==3">
         <all_license :license_dic="licenseDic" :pom_dic="pomLicenseDic"></all_license>
+        <dep_info :dep_dic="depDic"></dep_info>
+        <deps_conflict :deps_conflict_dic="depsConflictDic"></deps_conflict>
+        <proj_conflict :proj_conflict_dic="projConflictDic"></proj_conflict>
         <missing_license :missing_dic="missingDic" :mode="mode"></missing_license>
     </div>
 
