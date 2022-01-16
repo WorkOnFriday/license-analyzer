@@ -520,6 +520,7 @@
                             this.mode = 2;
                             //处理依赖关系
                             pro_depend = respon.data["Dependency"]["Project"];
+                            pro_depend = [pro_depend];
                             for (let pro in pro_depend) {
                                 if (pro_depend[pro]["Dependencies"] != null) {
                                     if (this.depDic[pro_depend[pro]["Name"]]) {
