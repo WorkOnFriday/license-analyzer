@@ -522,8 +522,8 @@
                 instance.get("json/missingDemo.json").then(respon => this.missingDic=respon.data);
             },
             getTestdata(id){
-                instance.get("/task/?id="+id)
-                //     instance.get("./json/test.json")
+                // instance.get("/task/?id="+id)
+                    instance.get("./json/test.json")
                     .then((respon)=> {
                     this.depDic={};
                     this.depsConflictDic=[];
@@ -596,9 +596,9 @@
                             let ext_confl=respon.data["ExternalConflicts"];
                             for( let conflict in ext_confl){
                                 let tmpDic={};
-                                tmpDic["pack"]=ext_confl[conflict]["MainLicense"]["Path"];
+                                tmpDic["packOne"]=ext_confl[conflict]["MainLicense"]["Path"];
                                 tmpDic["licenseOne"]=ext_confl[conflict]["MainLicense"]["License"];
-                                tmpDic["dependency"]=ext_confl[conflict]["ExternalLicense"]["Path"];
+                                tmpDic["packTwo"]=ext_confl[conflict]["ExternalLicense"]["Path"];
                                 tmpDic["licenseTwo"]=ext_confl[conflict]["ExternalLicense"]["License"];
                                 tmpDic["conflictInfo"]=ext_confl[conflict]["Result"]["Message"];
                                 this.projConflictDic.push(tmpDic);
