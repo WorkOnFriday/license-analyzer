@@ -506,22 +506,9 @@
 
         },
         methods: {
-            getDepDic() {
-                //发送get方式请求
-                instance.get("json/depInfoDemo.json").then(res => this.depDic = res.data);
-            },
-            getDepsConflictDic() {
-                instance.get("json/depsConflictDemo.json").then(respon => this.depsConflictDic = respon.data);
-            },
-            getProjConflictDic() {
-                instance.get("json/projectsConflictDemo.json").then(respon => this.projConflictDic = respon.data);
-            },
-            getMissingDic() {
-                instance.get("json/missingDemo.json").then(respon => this.missingDic = respon.data);
-            },
             getTestdata(id) {
-                // instance.get("/task/?id="+id)
-                instance.get("./json/test.json")
+                instance.get("/task/?id="+id)
+                // instance.get("./json/test.json")
                     .then((respon) => {
                         this.depDic = {};
                         this.depsConflictDic = [];
@@ -533,13 +520,13 @@
                             this.mode = 2;
                             //处理依赖关系
                             pro_depend = respon.data["Dependency"]["Project"];
-                            for (let pro of pro_depend) {
+                            for (let pro in pro_depend) {
                                 if (pro["Dependencies"] != null) {
-                                    if (this.depDic[pro["Name"]]) {
-                                        this.depDic[pro["Name"]].push(pro["Dependencies"]);
+                                    if (this.depDic[pro_depend[pro]["Name"]]) {
+                                        this.depDic[pro_depend[pro]["Name"]].push(pro_depend[pro]["Dependencies"]);
                                     } else {
-                                        this.depDic[pro["Name"]] = [];
-                                        this.depDic[pro["Name"]].push(pro["Dependencies"]);
+                                        this.depDic[pro_depend[pro]["Name"]] = [];
+                                        this.depDic[pro_depend[pro]["Name"]].push(pro_depend[pro]["Dependencies"]);
                                     }
                                 }
                             }
