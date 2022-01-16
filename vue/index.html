@@ -16,21 +16,21 @@
 
 </head>
 
-<body id="top" class="stickyfooter header-fixed"  style="background-color:#ffffff">
+<body id="top" class="stickyfooter header-fixed" style="background-color:#ffffff">
 <script src="js/cc.js" type="text/javascript" charset="utf-8"></script>
 <script src="js/vue.js"></script>
 <script src="js/axios.min.js"></script>
 <script src="js/md5.js"></script>
 <script type="module" src="js/qs.js"></script>
 
-<div id="app" >
+<div id="app">
 
-    <h1  style="text-align: center">{{showTitle}}</h1>
+    <h1 style="text-align: center">{{showTitle}}</h1>
 
     <upload_file></upload_file>
     <inquire></inquire>
 
-    <div v-if="mode==2" >
+    <div v-if="mode==2">
         <all_license :license_dic="licenseDic" :pom_dic="pomLicenseDic"></all_license>
         <dep_info :dep_dic="depDic"></dep_info>
         <deps_conflict :deps_conflict_dic="depsConflictDic"></deps_conflict>
@@ -45,7 +45,7 @@
     </div>
 
     <div v-if="mode==4">
-        <h4 >检测未完成，请稍后重新查询</h4>
+        <h4>检测未完成，请稍后重新查询</h4>
     </div>
 
 </div>
@@ -53,8 +53,6 @@
 
 </body>
 </html>
-
-
 
 
 <script>
@@ -68,7 +66,7 @@
     //依赖信息组件
     const dep_info = {
         template: `
-          <div class="stickyfooter header-fixed" >
+          <div class="stickyfooter header-fixed">
           <div class="content">
             <main>
               <section class="pricing-area pt90 pb30">
@@ -138,17 +136,20 @@
                       <div v-for=" (conflict,index) in deps_conflict_dic" class="col-md-6">
 
                         <div class="pricing-table mb30 " style="height: 400px;overflow: hidden !important;">
-                          <h4 >冲突[{{index+1}}]</h4>
+                          <h4>冲突[{{ index + 1 }}]</h4>
                           <hr>
-<!--                          <div class="price-header">-->
-<!--                            <span class="price">{{ conflict.packOne }}</span>-->
-<!--                          </div>-->
-                          <div class="price-body text-left  test test-1 " >
-<!--                            <div class="scrollbar"></div>-->
+                          <!--                          <div class="price-header">-->
+                          <!--                            <span class="price">{{ conflict.packOne }}</span>-->
+                          <!--                          </div>-->
+                          <div class="price-body text-left  test test-1 ">
+                            <!--                            <div class="scrollbar"></div>-->
                             <ul>
-                              <li><span style="font-weight: bold ">{{conflict.pack}}</span>: {{conflict.licenseOne}}</li>
-                              <li><span style="font-weight: bold">{{conflict.dependency}}</span>: {{conflict.licenseTwo}}</li>
-                              <li><span style="font-weight: bold">冲突信息：</span>{{conflict.conflictInfo}}</li>
+                              <li><span style="font-weight: bold ">{{ conflict.pack }}</span>: {{ conflict.licenseOne }}
+                              </li>
+                              <li><span style="font-weight: bold">{{ conflict.dependency }}</span>:
+                                {{ conflict.licenseTwo }}
+                              </li>
+                              <li><span style="font-weight: bold">冲突信息：</span>{{ conflict.conflictInfo }}</li>
                             </ul>
 
                           </div>
@@ -165,18 +166,17 @@
           </div>
           </div>
         `,
-        data(){
+        data() {
             return {
-                count:1
+                count: 1
             }
         },
-        methods: {
-        },
-        props: ['deps_conflict_dic','test']
+        methods: {},
+        props: ['deps_conflict_dic', 'test']
     };
     //项目中冲突
-    const proj_conflict={
-        template:`
+    const proj_conflict = {
+        template: `
           <div class="stickyfooter header-fixed" v-if="proj_conflict_dic.length!=0">
           <div class="content">
             <main>
@@ -196,14 +196,18 @@
                       <div v-for=" (conflict,index) in proj_conflict_dic" class="col-md-6">
 
                         <div class="pricing-table mb30 " style="height: 400px;overflow: hidden !important;">
-                          <h4 >冲突[{{index+1}}]</h4>
+                          <h4>冲突[{{ index + 1 }}]</h4>
                           <hr>
 
-                          <div class="price-body text-left  test test-1 " >
+                          <div class="price-body text-left  test test-1 ">
                             <ul>
-                              <li><span style="font-weight: bold; ">{{conflict.packOne}}</span>: {{conflict.licenseOne}}</li>
-                              <li><span style="font-weight: bold;">{{conflict.packTwo}}</span>: {{conflict.licenseTwo}}</li>
-                              <li><span style="font-weight: bold">冲突信息：</span>{{conflict.conflictInfo}}</li>
+                              <li><span style="font-weight: bold; ">{{ conflict.packOne }}</span>:
+                                {{ conflict.licenseOne }}
+                              </li>
+                              <li><span style="font-weight: bold;">{{ conflict.packTwo }}</span>:
+                                {{ conflict.licenseTwo }}
+                              </li>
+                              <li><span style="font-weight: bold">冲突信息：</span>{{ conflict.conflictInfo }}</li>
                             </ul>
 
                           </div>
@@ -223,11 +227,11 @@
 
           </div>
         `,
-        props:['proj_conflict_dic']
+        props: ['proj_conflict_dic']
     }
     //license缺失&推荐license
-    const missing_license={
-        template:`
+    const missing_license = {
+        template: `
           <div class="stickyfooter header-fixed" v-if="missing_dic.length!=0">
           <div class="content">
             <main>
@@ -236,7 +240,7 @@
 
                   <div class="row">
                     <div class="col-xs-12">
-                      <div class="area-heading text-center" >
+                      <div class="area-heading text-center">
                         <h2 class="area-title" v-if="mode==3">该项目缺少许可证</h2>
                         <h2 class="area-title" v-if="mode==2">推荐许可证</h2>
                       </div>
@@ -245,16 +249,16 @@
                   <div class="row">
                     <div>
 
-                      <div  class="col-md-6 col-md-offset-3">
+                      <div class="col-md-6 col-md-offset-3">
 
                         <div class="pricing-table mb30 " style="height: 400px;overflow: hidden !important;">
-                          <h4 >推荐许可证</h4>
+                          <h4>推荐许可证</h4>
                           <hr>
 
-                          <div class="price-body  test test-1 " >
+                          <div class="price-body  test test-1 ">
                             <ul>
-<!--                              <li ><span style="font-weight: bold;">缺失项目名:</span>: {{missing_dic[0].missingPackage}}</li>-->
-                              <li v-for="(recommend,idx) in missing_dic[0].recommends">{{recommend}}</li>
+                              <!--                              <li ><span style="font-weight: bold;">缺失项目名:</span>: {{missing_dic[0].missingPackage}}</li>-->
+                              <li v-for="(recommend,idx) in missing_dic[0].recommends">{{ recommend }}</li>
                             </ul>
 
                           </div>
@@ -274,71 +278,66 @@
 
           </div>
         `,
-        props: ['missing_dic','mode']
+        props: ['missing_dic', 'mode']
     }
 
     //上传文件组件
-    const upload_file={
-        template:`
-        <div class="big-classic-load-button text-center">
-        <p class="end">提示信息</p>
-<!--        选择文件按钮        -->
-        <a type="button" id="classic-load-button-link" href="#" data-load="1" @click="click_submit">选择文件</a>
+    const upload_file = {
+        template: `
+          <div class="big-classic-load-button text-center">
+          <p class="end">提示信息</p>
+          <!--        选择文件按钮        -->
+          <a type="button" id="classic-load-button-link" href="#" data-load="1" @click="click_submit">选择文件</a>
 
+          <br>
+          {{ filename }}
+          <br>
+          <button @click="upload" class="btn btn-lg btn-black ">上传</button>
+          <br>
+          <span v-if="is_upload">正在上传文件，请稍后...</span>
+          <br>
+          <span v-if="hash.length>=1"><span style="color: #fc011a">请记住你的查询号：</span>{{ hash }}</span>
+          <!--      隐藏的上传文件组件-->
+          <input type="file"
+                 id="id_upload" name="avatar"
+                 accept=".zip"
+                 style="visibility: hidden"
+                 v-on:change="get_filename()">
 
-        <br>
-        {{filename}}
-        <br>
-        <button  @click="upload" class="btn btn-lg btn-black ">上传</button>
-        <br>
-        <span v-if="is_upload">正在上传文件，请稍后...</span>
-        <br>
-        <span v-if="hash.length>=1"><span style="color: #fc011a">请记住你的查询号：</span>{{hash}}</span>
-        <!--      隐藏的上传文件组件-->
-        <input type="file"
-               id="id_upload" name="avatar"
-               accept=".zip"
-               style="visibility: hidden"
-               v-on:change="get_filename()">
-
-        <hr>
-    </div>
+          <hr>
+          </div>
         `,
-        data(){
+        data() {
             return {
-                filename:' ',
-                hash:'',
-                is_upload:false
+                filename: ' ',
+                hash: '',
+                is_upload: false
             }
         },
-        methods:{
+        methods: {
 
-            upload(){
+            upload() {
 
                 let inputElement = document.getElementById("id_upload");
-                this.hash='';
-                this.is_upload=true;
+                this.hash = '';
+                this.is_upload = true;
                 let file = inputElement.files[0];
                 console.log(file);
                 if (!file) {
                     alert("请选择文件");
-                    this.is_upload=false;
+                    this.is_upload = false;
                     return;
                 }
-                let size=file.size;
+                let size = file.size;
                 console.log(size);
 
-                // this.hash=hex_md5(file);
-                // console.log(this.hash);
-                // alert('请记住查询号码：',this.hash);
                 let param = new FormData(); // 创建form对象
                 param.append("file", file); // 通过append向form对象添加数据
-                // param.append("chunk", "别的数据"); // 添加form表单中其他数据
 
                 console.log(param.get("file")); // FormData私有类对象，访问不到，可以通过get判断值是否传进去
 
                 let config = {
-                    headers: { "Content-Type": "multipart/form-data" }
+                    headers: {"Content-Type": "multipart/form-data"}
                 };
                 // post上传文件和获取返回值
                 //
@@ -351,43 +350,41 @@
                     method: 'post',
                     data: param
                 })
-
-                    .then((response)=>{
-                        console.log(response);
-                        this.is_upload=false;
-                        if(response.status==200){
-                        //    获取查询码
+                    .then((response) => {
                             console.log(response);
-                            // 显示字符串查询码
-                            this.hash=response.data+"";
-                            console.log(this.hash);
+                            this.is_upload = false;
+                            if (response.status == 200) {
+                                //    获取查询码
+                                console.log(response);
+                                // 显示字符串查询码
+                                this.hash = response.data + "";
+                                console.log(this.hash);
+                            } else {
+                                alert("a.上传失败，请重新选择文件");
+                                this.filename = '';
+                            }
                         }
-                        else {
-                            alert("a.上传失败，请重新选择文件");
-                            this.filename='';
-                        }
-                        }
-                    ).catch( (error)=> {
+                    ).catch((error) => {
                     alert("b.上传失败，请重新选择文件");
-                    this.is_upload=false;
+                    this.is_upload = false;
                     console.log(error);
                 });
 
             },
-            click_submit(){
-                let x=document.getElementById("id_upload");
+            click_submit() {
+                let x = document.getElementById("id_upload");
                 x.click()
             },
-            get_filename(){
-                let x=document.getElementById("id_upload");
-                this.filename=x.value
+            get_filename() {
+                let x = document.getElementById("id_upload");
+                this.filename = x.value
             }
         }
     }
     //显示所有许可证组件
-    const all_license={
+    const all_license = {
         template: `
-          <div class="stickyfooter header-fixed" >
+          <div class="stickyfooter header-fixed">
           <div class="content">
             <main>
               <section class="pricing-area pt90 pb30">
@@ -403,7 +400,7 @@
                   <div class="row ">
                     <div>
 
-                      <div  class="col-md-8 col-md-offset-2 card">
+                      <div class="col-md-8 col-md-offset-2 card">
 
                         <div class="pricing-table mb30">
                           <div class="price-header">
@@ -413,10 +410,15 @@
                           <div class="price-body">
 
                             <ul v-for="pom in pom_dic">
-                              <li class="text-left"><span style="font-weight: bold">GroupID:</span>{{pom["groupID"] }}</li>
-                              <li class="text-left"><span style="font-weight: bold">ArtifactID:</span>{{pom["artifactID"]}}</li>
-                              <li class="text-left"><span style="font-weight: bold">Version:</span>{{pom["version"]}}</li>
-                              <li class="text-left"><span style="font-weight: bold">License:</span>{{pom["license"]}}</li>
+                              <li class="text-left"><span style="font-weight: bold">GroupID:</span>{{ pom["groupID"] }}
+                              </li>
+                              <li class="text-left"><span style="font-weight: bold">ArtifactID:</span>
+                                {{ pom["artifactID"] }}
+                              </li>
+                              <li class="text-left"><span style="font-weight: bold">Version:</span>{{ pom["version"] }}
+                              </li>
+                              <li class="text-left"><span style="font-weight: bold">License:</span>{{ pom["license"] }}
+                              </li>
                               <hr>
                             </ul>
                           </div>
@@ -428,8 +430,9 @@
                           <div class="price-body">
 
                             <ul v-for="lic in license_dic">
-                              <li class="text-left"><span style="font-weight: bold">path:</span>{{lic["path"] }}</li>
-                              <li class="text-left"><span style="font-weight: bold">license:</span>{{lic["license"]}}</li>
+                              <li class="text-left"><span style="font-weight: bold">path:</span>{{ lic["path"] }}</li>
+                              <li class="text-left"><span style="font-weight: bold">license:</span>{{ lic["license"] }}
+                              </li>
                               <hr>
                             </ul>
                           </div>
@@ -450,39 +453,34 @@
         data() {
             return {}
         },
-        props: ['license_dic','pom_dic']
+        props: ['license_dic', 'pom_dic']
     }
 
     //添加查询号组件
-    const inquire={
-        template:`
-        <div class="container">
-            <div class="form-group-lg" >
-              <label for="id_inquire" style="float:left">查询已分析文件</label>
-                <input type="text" class="form-control " id="id_inquire" placeholder="请输入查询号" v-model="inquire_num">
-            </div>
-             <button @click="quire" class="btn btn-lg btn-black">查询</button>
-        </div>
+    const inquire = {
+        template: `
+          <div class="container">
+          <div class="form-group-lg">
+            <label for="id_inquire" style="float:left">查询已分析文件</label>
+            <input type="text" class="form-control " id="id_inquire" placeholder="请输入查询号" v-model="inquire_num">
+          </div>
+          <button @click="quire" class="btn btn-lg btn-black">查询</button>
+          </div>
 
         `,
-        data(){
-            return{
-                inquire_num:''
+        data() {
+            return {
+                inquire_num: ''
             }
         },
-        methods:{
-            quire(){
+        methods: {
+            quire() {
                 app.getTestdata(this.inquire_num);
-                // if(this.inquire_num.length>1){
-                //     //未出现缺失的情况 mode=2
-                //     app.mode=2;
-                // }
-                // else {
-                //     //未查询的情况 mode=1
-                //     app.mode=1;
-                // }
-            //    出现缺失的情况 mode=3   该部分没添加
-            //    检测未完成 mode=4
+                //
+                //未出现缺失的情况 mode=2
+                //未查询的情况 mode=1
+                //出现缺失的情况 mode=3   该部分没添加
+                //检测未完成 mode=4
             }
         }
 
@@ -497,13 +495,13 @@
             //  查询号码
             inquiryNum: '',
             depDic: '',
-            depsConflictDic:'',
-            projConflictDic:'',
-            missingDic:'',
-            pomLicenseDic:'',
-            licenseDic:'',
-            testData:"测试",
-            mode:1,
+            depsConflictDic: '',
+            projConflictDic: '',
+            missingDic: '',
+            pomLicenseDic: '',
+            licenseDic: '',
+            testData: "测试",
+            mode: 1,
 
 
         },
@@ -512,111 +510,106 @@
                 //发送get方式请求
                 instance.get("json/depInfoDemo.json").then(res => this.depDic = res.data);
             },
-            getDepsConflictDic(){
-                instance.get("json/depsConflictDemo.json").then(respon => this.depsConflictDic=respon.data);
+            getDepsConflictDic() {
+                instance.get("json/depsConflictDemo.json").then(respon => this.depsConflictDic = respon.data);
             },
-            getProjConflictDic(){
-                instance.get("json/projectsConflictDemo.json").then(respon => this.projConflictDic=respon.data);
+            getProjConflictDic() {
+                instance.get("json/projectsConflictDemo.json").then(respon => this.projConflictDic = respon.data);
             },
-            getMissingDic(){
-                instance.get("json/missingDemo.json").then(respon => this.missingDic=respon.data);
+            getMissingDic() {
+                instance.get("json/missingDemo.json").then(respon => this.missingDic = respon.data);
             },
-            getTestdata(id){
+            getTestdata(id) {
                 // instance.get("/task/?id="+id)
-                    instance.get("./json/test.json")
-                    .then((respon)=> {
-                    this.depDic={};
-                    this.depsConflictDic=[];
-                    this.projConflictDic=[];
-                    this.missingDic=[];
-                    this.pomLicenseDic=[];
-                    this.licenseDic=[];     //path=""  license=""
-                    if (respon.data["IsFinish"]==true ){
-                        this.mode=2;
-                        //处理依赖关系
-                        pro_depend=respon.data["Dependency"]["Project"];
-                        for (let pro of pro_depend){
-                            if (pro["Dependencies"]!=null){
-                                if (this.depDic[pro["Name"]]){
-                                    this.depDic[pro["Name"]].push(pro["Dependencies"]);
+                instance.get("./json/test.json")
+                    .then((respon) => {
+                        this.depDic = {};
+                        this.depsConflictDic = [];
+                        this.projConflictDic = [];
+                        this.missingDic = [];
+                        this.pomLicenseDic = [];
+                        this.licenseDic = [];     //path=""  license=""
+                        if (respon.data["IsFinish"] == true) {
+                            this.mode = 2;
+                            //处理依赖关系
+                            pro_depend = respon.data["Dependency"]["Project"];
+                            for (let pro of pro_depend) {
+                                if (pro["Dependencies"] != null) {
+                                    if (this.depDic[pro["Name"]]) {
+                                        this.depDic[pro["Name"]].push(pro["Dependencies"]);
+                                    } else {
+                                        this.depDic[pro["Name"]] = [];
+                                        this.depDic[pro["Name"]].push(pro["Dependencies"]);
+                                    }
                                 }
-                                else{
-                                    this.depDic[pro["Name"]]=[];
-                                    this.depDic[pro["Name"]].push(pro["Dependencies"]);
+                            }
+                            newDic = [];
+                            for (let key in this.depDic) {
+                                let tmpDic = {};
+                                console.log(key);
+                                tmpDic["package"] = key;
+                                tmpDic["dependency"] = this.depDic[key];
+                                newDic.push(tmpDic);
+                            }
+                            this.depDic = newDic;
+                            //    依赖关系json处理完毕
+                            //  所有许可证
+                            if (respon.data["Local"] != null) {
+                                for (let each of respon.data["Local"]) {
+                                    let tmpDic = {};
+                                    tmpDic["path"] = each["Path"];
+                                    tmpDic["license"] = each["License"];
+                                    this.licenseDic.push(tmpDic);
                                 }
                             }
-                        }
-                        newDic=[];
-                        for (let key in this.depDic){
-                            let tmpDic={};
-                            console.log(key);
-                            tmpDic["package"]=key;
-                            tmpDic["dependency"]=this.depDic[key];
-                            newDic.push(tmpDic);
-                        }
-                        this.depDic=newDic;
-                        //    依赖关系json处理完毕
-                        //  所有许可证
-                        if(respon.data["Local"]!=null){
-                            for (let each of respon.data["Local"]){
-                                let tmpDic={};
-                                tmpDic["path"]=each["Path"];
-                                tmpDic["license"]=each["License"];
-                                this.licenseDic.push(tmpDic);
+                            //    pomlicense
+                            if (respon.data["PomLicense"] != null) {
+                                for (let each of respon.data["PomLicense"]) {
+                                    let tmpDic = {};
+                                    tmpDic["groupID"] = each["GroupID"];
+                                    tmpDic["artifactID"] = each["ArtifactID"];
+                                    tmpDic["license"] = each["License"];
+                                    tmpDic["version"] = each["Version"];
+                                    this.pomLicenseDic.push(tmpDic);
+                                }
                             }
-                        }
-                        //    pomlicense
-                        if(respon.data["PomLicense"]!=null){
-                            for (let each of respon.data["PomLicense"] ){
-                                let tmpDic={};
-                                tmpDic["groupID"]=each["GroupID"];
-                                tmpDic["artifactID"]=each["ArtifactID"];
-                                tmpDic["license"]=each["License"];
-                                tmpDic["version"]=each["Version"];
-                                this.pomLicenseDic.push(tmpDic);
+                            //    处理本地冲突
+                            if (respon.data["LocalConflicts"] != null) {
+                                let loc_confl = respon.data["LocalConflicts"];
+                                for (let conflict of loc_confl) {
+                                    let tmpDic = {};
+                                    tmpDic["pack"] = conflict["MainLicense"]["Path"];
+                                    tmpDic["licenseOne"] = conflict["MainLicense"]["License"];
+                                    tmpDic["dependency"] = conflict["ExternalLicense"]["Path"];
+                                    tmpDic["licenseTwo"] = conflict["ExternalLicense"]["License"];
+                                    tmpDic["conflictInfo"] = conflict["Result"]["Message"];
+                                    this.depsConflictDic.push(tmpDic);
+                                }
                             }
-                        }
-
-
-                        //    处理本地冲突
-                        if(respon.data["LocalConflicts"]!=null){
-                            let loc_confl=respon.data["LocalConflicts"];
-                            for( let conflict of loc_confl){
-                                let tmpDic={};
-                                tmpDic["pack"]=conflict["MainLicense"]["Path"];
-                                tmpDic["licenseOne"]=conflict["MainLicense"]["License"];
-                                tmpDic["dependency"]=conflict["ExternalLicense"]["Path"];
-                                tmpDic["licenseTwo"]=conflict["ExternalLicense"]["License"];
-                                tmpDic["conflictInfo"]=conflict["Result"]["Message"];
-                                this.depsConflictDic.push(tmpDic);
+                            //  处理项目冲突
+                            if (respon.data["ExternalConflicts"] != null) {
+                                let ext_confl = respon.data["ExternalConflicts"];
+                                for (let conflict in ext_confl) {
+                                    let tmpDic = {};
+                                    tmpDic["packOne"] = ext_confl[conflict]["MainLicense"]["Path"];
+                                    tmpDic["licenseOne"] = ext_confl[conflict]["MainLicense"]["License"];
+                                    tmpDic["packTwo"] = ext_confl[conflict]["ExternalLicense"]["Path"];
+                                    tmpDic["licenseTwo"] = ext_confl[conflict]["ExternalLicense"]["License"];
+                                    tmpDic["conflictInfo"] = ext_confl[conflict]["Result"]["Message"];
+                                    this.projConflictDic.push(tmpDic);
+                                }
                             }
-                        }
-                        //  处理项目冲突
-                        if(respon.data["ExternalConflicts"]!=null){
-                            let ext_confl=respon.data["ExternalConflicts"];
-                            for( let conflict in ext_confl){
-                                let tmpDic={};
-                                tmpDic["packOne"]=ext_confl[conflict]["MainLicense"]["Path"];
-                                tmpDic["licenseOne"]=ext_confl[conflict]["MainLicense"]["License"];
-                                tmpDic["packTwo"]=ext_confl[conflict]["ExternalLicense"]["Path"];
-                                tmpDic["licenseTwo"]=ext_confl[conflict]["ExternalLicense"]["License"];
-                                tmpDic["conflictInfo"]=ext_confl[conflict]["Result"]["Message"];
-                                this.projConflictDic.push(tmpDic);
+                            //    推荐许可证
+                            if (respon.data["RecommendLicenses"] != null) {
+                                let tmpDic = {};
+                                tmpDic["missingPackage"] = "";
+                                tmpDic["recommends"] = respon.data["RecommendLicenses"];
+                                this.missingDic.push(tmpDic);
                             }
+                        } else if (respon.data["IsFinish"] == false) {
+                            this.mode = 4;
                         }
-                        //    推荐许可证
-                        if(respon.data["RecommendLicenses"]!=null) {
-                            let tmpDic = {};
-                            tmpDic["missingPackage"] = "";
-                            tmpDic["recommends"] = respon.data["RecommendLicenses"];
-                            this.missingDic.push(tmpDic);
-                        }
-
-                    }
-                    else if (respon.data["IsFinish"]==false ){
-                        this.mode=4;
-                    }
-                })
+                    })
             }
         },
         components: {
@@ -628,92 +621,86 @@
             inquire,
             all_license
         },
-
         created() {
-            // this.getDepsConflictDic();
-            // this.getDepDic();
-            // this.getProjConflictDic();
-            // this.getMissingDic();
-            // this.getTestdata();
-
-
-
         },
-        // updated(){
-        //     console.log(app.depDic);
-        //     console.log(app.depsConflictDic);
-        // }
+
     });
 
 
 </script>
 <!--鼠标心型特效-->
 <script type="text/javascript">
-    (function(window,document,undefined){
+    (function (window, document, undefined) {
         var hearts = [];
-        window.requestAnimationFrame = (function(){
+        window.requestAnimationFrame = (function () {
             return window.requestAnimationFrame ||
                 window.webkitRequestAnimationFrame ||
                 window.mozRequestAnimationFrame ||
                 window.oRequestAnimationFrame ||
                 window.msRequestAnimationFrame ||
-                function (callback){
-                    setTimeout(callback,1000/60);
+                function (callback) {
+                    setTimeout(callback, 1000 / 60);
                 }
         })();
         init();
-        function init(){
+
+        function init() {
             css(".heart{width: 10px;height: 10px;position: fixed;background: #f00;transform: rotate(45deg);-webkit-transform: rotate(45deg);-moz-transform: rotate(45deg);}.heart:after,.heart:before{content: '';width: inherit;height: inherit;background: inherit;border-radius: 50%;-webkit-border-radius: 50%;-moz-border-radius: 50%;position: absolute;}.heart:after{top: -5px;}.heart:before{left: -5px;}");
             attachEvent();
             gameloop();
         }
-        function gameloop(){
-            for(var i=0;i<hearts.length;i++){
-                if(hearts[i].alpha <=0){
+
+        function gameloop() {
+            for (var i = 0; i < hearts.length; i++) {
+                if (hearts[i].alpha <= 0) {
                     document.body.removeChild(hearts[i].el);
-                    hearts.splice(i,1);
+                    hearts.splice(i, 1);
                     continue;
                 }
                 hearts[i].y--;
                 hearts[i].scale += 0.004;
                 hearts[i].alpha -= 0.013;
-                hearts[i].el.style.cssText = "left:"+hearts[i].x+"px;top:"+hearts[i].y+"px;opacity:"+hearts[i].alpha+";transform:scale("+hearts[i].scale+","+hearts[i].scale+") rotate(45deg);background:"+hearts[i].color;
+                hearts[i].el.style.cssText = "left:" + hearts[i].x + "px;top:" + hearts[i].y + "px;opacity:" + hearts[i].alpha + ";transform:scale(" + hearts[i].scale + "," + hearts[i].scale + ") rotate(45deg);background:" + hearts[i].color;
             }
             requestAnimationFrame(gameloop);
         }
-        function attachEvent(){
-            var old = typeof window.onclick==="function" && window.onclick;
-            window.onclick = function(event){
+
+        function attachEvent() {
+            var old = typeof window.onclick === "function" && window.onclick;
+            window.onclick = function (event) {
                 old && old();
                 createHeart(event);
             }
         }
-        function createHeart(event){
+
+        function createHeart(event) {
             var d = document.createElement("div");
             d.className = "heart";
             hearts.push({
-                el : d,
-                x : event.clientX - 5,
-                y : event.clientY - 5,
-                scale : 1,
-                alpha : 1,
-                color : randomColor()
+                el: d,
+                x: event.clientX - 5,
+                y: event.clientY - 5,
+                scale: 1,
+                alpha: 1,
+                color: randomColor()
             });
             document.body.appendChild(d);
         }
-        function css(css){
+
+        function css(css) {
             var style = document.createElement("style");
-            style.type="text/css";
-            try{
+            style.type = "text/css";
+            try {
                 style.appendChild(document.createTextNode(css));
-            }catch(ex){
+            } catch (ex) {
                 style.styleSheet.cssText = css;
             }
             document.getElementsByTagName('head')[0].appendChild(style);
         }
-        function randomColor(){
-            return "rgb("+(~~(Math.random()*255))+","+(~~(Math.random()*255))+","+(~~(Math.random()*255))+")";
+
+        function randomColor() {
+            return "rgb(" + (~~(Math.random() * 255)) + "," + (~~(Math.random() * 255)) + "," + (~~(Math.random() * 255)) + ")";
         }
-    })(window,document);
+    })(window, document);
 </script>
 
