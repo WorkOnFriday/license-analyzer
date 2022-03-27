@@ -14,6 +14,9 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 )
 
 type MysqlConfigure struct {
@@ -32,7 +35,7 @@ var Config Configure
 func ReadConfFile() {
 	log.Println("read conf file")
 
-	file, err := os.Open("conf/config.json")
+	file, err := os.Open(GetAppPath() + "/conf/config.json")
 	if err != nil {
 		log.Fatalln("Configure file error ", err.Error())
 	}
@@ -43,4 +46,12 @@ func ReadConfFile() {
 		log.Fatalln("decode error", err.Error())
 	}
 	log.Println("read conf file success", Config)
+}
+
+func GetAppPath() string {
+	file, _ := exec.LookPath(os.Args[0])
+	path, _ := filepath.Abs(file)
+	index := strings.LastIndex(path, string(os.PathSeparator))
+
+	return path[:index]
 }

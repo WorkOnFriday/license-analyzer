@@ -20,7 +20,7 @@ func SetRouterAndRun() {
 
 	logrus.Debugln("set router")
 
-	if err := router.Run("localhost:8080"); err != nil {
+	if err := router.Run(":4100"); err != nil {
 		logrus.Fatal(err.Error())
 	}
 }
